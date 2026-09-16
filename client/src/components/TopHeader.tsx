@@ -87,11 +87,11 @@ export const INITIAL_BEEKEEPERS: BeekeeperProfile[] = [
 ];
 
 export const USER_PROFILES: Record<UserRole, { name: string; initials: string; roleLabel: string; location: string }> = {
-  Beekeeper: { name: 'Ramesh Kumar', initials: 'RK', roleLabel: 'Beekeeper', location: 'Nizamabad' },
-  Processor: { name: 'Dr. A. K. Verma', initials: 'AV', roleLabel: 'Quality Inspector', location: 'FSSAI Testing Lab' },
-  Distributor: { name: 'Suresh Logistics', initials: 'SL', roleLabel: 'Logistics Manager', location: 'Hyderabad Hub' },
-  Consumer: { name: 'Priya Sharma', initials: 'PS', roleLabel: 'Verified Consumer', location: 'Consumer View' },
-  Admin: { name: 'System Administrator', initials: 'SA', roleLabel: 'Platform Admin', location: 'National Honey Chain' }
+  Beekeeper: { name: 'Ramesh Kumar', initials: 'RK', roleLabel: 'Apiary Owner', location: 'Nizamabad' },
+  Processor: { name: 'Dr. A. K. Verma', initials: 'AV', roleLabel: 'QA & Bottling Operator', location: 'FSSAI Testing Lab' },
+  Distributor: { name: 'Suresh Logistics', initials: 'SL', roleLabel: 'Logistics Operator', location: 'Hyderabad Hub' },
+  Consumer: { name: 'Priya Sharma', initials: 'PS', roleLabel: 'Consumer Passport', location: 'Consumer View' },
+  Admin: { name: 'System Administrator', initials: 'SA', roleLabel: 'System Administrator', location: 'National Honey Chain' }
 };
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
@@ -232,11 +232,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   };
 
   const roleBadgeMap: Record<UserRole, { label: string; style: string }> = {
-    Admin: { label: '🛡️ ADMIN PORTAL', style: 'bg-amber-500/20 text-amber-900 border-amber-500/40 font-mono' },
-    Beekeeper: { label: '👨‍🌾 BEEKEEPER PORTAL', style: 'bg-emerald-100 text-emerald-900 border-emerald-300 font-mono' },
-    Processor: { label: '🧪 LAB & PROCESSING', style: 'bg-purple-100 text-purple-900 border-purple-300 font-mono' },
-    Distributor: { label: '🚚 COLD-CHAIN LOGISTICS', style: 'bg-blue-100 text-blue-900 border-blue-300 font-mono' },
-    Consumer: { label: '👤 CONSUMER PASSPORT', style: 'bg-cyan-100 text-cyan-900 border-cyan-300 font-mono' }
+    Admin: { label: 'SYSTEM SCOPED • ADMIN', style: 'bg-amber-500/20 text-amber-900 border-amber-500/40 font-mono' },
+    Beekeeper: { label: 'APIARY SCOPED • BEEKEEPER', style: 'bg-emerald-100 text-emerald-900 border-emerald-300 font-mono' },
+    Processor: { label: 'FACILITY SCOPED • QA & BOTTLING', style: 'bg-sky-100 text-sky-900 border-sky-300 font-mono' },
+    Distributor: { label: 'LOGISTICS SCOPED • DISTRIBUTION', style: 'bg-blue-100 text-blue-900 border-blue-300 font-mono' },
+    Consumer: { label: 'PUBLIC ACCESS • CONSUMER', style: 'bg-purple-100 text-purple-900 border-purple-300 font-mono' }
   };
 
   return (

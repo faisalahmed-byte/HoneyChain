@@ -113,6 +113,7 @@ export const App: React.FC = () => {
       const parts = path.split('/verify/');
       if (parts[1]) {
         setSelectedBatchId(parts[1]);
+        setUserRole('Consumer');
         setCurrentTab('verify');
       }
     }
@@ -135,16 +136,6 @@ export const App: React.FC = () => {
   };
 
   const activeAlertsCount = dashboardData?.activeAlerts ? dashboardData.activeAlerts.length : 5;
-
-  // Standalone Consumer Passport View (No Sidebar, No Admin Nav)
-  if (currentTab === 'verify') {
-    return (
-      <ConsumerVerificationView
-        batchId={selectedBatchId}
-        onNavigate={setCurrentTab}
-      />
-    );
-  }
 
   // Standalone Landing Page View
   if (currentTab === 'landing') {
@@ -195,8 +186,20 @@ export const App: React.FC = () => {
         />
 
         {/* Dynamic Route Content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+        <main className={`flex-1 overflow-y-auto ${currentTab === 'verify' ? 'p-0' : 'p-4 sm:p-6 lg:p-8'}`}>
           
+          {currentTab === 'verify' && (
+            <ConsumerVerificationView
+              batchId={selectedBatchId}
+              onNavigate={(tab) => {
+                if (tab === 'dashboard' && userRole === 'Consumer') {
+                  setUserRole('Beekeeper');
+                }
+                setCurrentTab(tab);
+              }}
+            />
+          )}
+
           {currentTab === 'dashboard' && (
             <DashboardView
               data={dashboardData}
