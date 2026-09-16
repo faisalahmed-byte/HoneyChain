@@ -1,15 +1,19 @@
-const Database = require('better-sqlite3');
 const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config({ path: path.join(__dirname, '../.env') });
+const Database = require('better-sqlite3');
 const fs = require('fs');
 const { createClient } = require('@supabase/supabase-js');
 const { calculateBlockHash } = require('./blockchain');
 
 // Live Supabase Cloud Instance Credentials
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://kktklabqaldgupuwksmx.supabase.co';
-const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || 'kktklabqaldgupuwksmx';
+const SUPABASE_URL = process.env.SUPABASE_URL || '';
+const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-// Instantiate Live Supabase Cloud Client
-const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Instantiate Live Supabase Cloud Client (fallback to dummy if empty)
+const supabase = (SUPABASE_URL && SUPABASE_ANON_KEY)
+  ? createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+  : createClient('https://dummy.supabase.co', 'dummy-key');
 
 // Database file path
 const dbPath = path.join(__dirname, 'honeychain.db');
