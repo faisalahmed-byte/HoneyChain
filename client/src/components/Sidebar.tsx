@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
-import type { UserRole } from '../types';
+import type { UserRole, BeekeeperProfile } from '../types';
 import { USER_PROFILES } from './TopHeader';
 import { 
   Hexagon, LayoutDashboard, Cpu, Bell, QrCode, Package, 
   Search, Link, TestTube, Factory, Truck, ShoppingBag, 
   BarChart2, ShieldAlert, User, Layers, ChevronLeft, ChevronRight,
-  UserCheck, Database, LogIn
+  UserCheck, Database, LogIn, Globe
 } from 'lucide-react';
-
-import type { BeekeeperProfile } from '../types';
 
 interface SidebarProps {
   currentTab: string;
@@ -36,12 +34,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [collapsed, setCollapsed] = useState(false);
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false);
 
-  const roles: { role: UserRole; label: string; primaryTab: string }[] = [
-    { role: 'Beekeeper', label: '👨‍🌾 Beekeeper', primaryTab: 'dashboard' },
-    { role: 'Processor', label: '🧪 Quality & Processing', primaryTab: 'quality' },
-    { role: 'Distributor', label: '🚚 Logistics & Supply', primaryTab: 'distribution' },
-    { role: 'Consumer', label: '👤 Consumer View', primaryTab: 'verify' },
-    { role: 'Admin', label: '⚙️ Admin / System', primaryTab: 'tamper' },
+  const roles: { role: UserRole; label: string; shortLabel: string; primaryTab: string }[] = [
+    { role: 'Admin', label: '🛡️ All Modules / Admin', shortLabel: '🛡️ Admin', primaryTab: 'dashboard' },
+    { role: 'Beekeeper', label: '👨‍🌾 Beekeeper', shortLabel: '👨‍🌾 Beekeeper', primaryTab: 'dashboard' },
+    { role: 'Processor', label: '🧪 Quality & Lab', shortLabel: '🧪 Lab', primaryTab: 'quality' },
+    { role: 'Distributor', label: '🚚 Cold-Chain Logistics', shortLabel: '🚚 Logistics', primaryTab: 'distribution' },
+    { role: 'Consumer', label: '👤 Consumer Passport', shortLabel: '👤 Consumer', primaryTab: 'verify' },
   ];
 
   const getNavGroupsForRole = () => {
@@ -49,26 +47,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
       case 'Admin':
         return [
           {
-            group: '⚙️ Admin & System Audit',
+            group: '📊 Operations & Supply Chain',
             items: [
-              { id: 'database', label: 'Database Records Output', icon: Database },
-              { id: 'tamper', label: 'Tamper Simulation Lab', icon: ShieldAlert },
-              { id: 'blockchain', label: 'Blockchain Ledger Audit', icon: Link },
-              { id: 'analytics', label: 'National Production Analytics', icon: BarChart2 },
-              { id: 'architecture', label: 'System Architecture', icon: Layers }
+              { id: 'dashboard', label: 'Overview Dashboard', icon: LayoutDashboard },
+              { id: 'batches', label: '+ Create Honey Batch', icon: Package },
+              { id: 'traceability', label: 'Batch Traceability Journey', icon: Search },
+              { id: 'beekeeping', label: 'Smart Hives & AI Telemetry', icon: Cpu },
+              { id: 'alerts', label: 'AI Alert Center', icon: Bell, badge: unreadAlertsCount },
+              { id: 'quality', label: 'FSSAI Quality Testing', icon: TestTube },
+              { id: 'processing', label: 'Thermal Processing & Pack', icon: Factory },
+              { id: 'distribution', label: 'Cold-Chain Logistics', icon: Truck },
+              { id: 'qr', label: 'QR Generator & Labels', icon: QrCode },
+              { id: 'marketplace', label: 'Verified Marketplace', icon: ShoppingBag },
             ]
           },
           {
-            group: '📊 Operations Audit',
+            group: '⚙️ Blockchain & System Audit',
             items: [
-              { id: 'dashboard', label: 'System Overview Dashboard', icon: LayoutDashboard },
-              { id: 'batches', label: 'Honey Batches Audit', icon: Package },
-              { id: 'beekeeping', label: 'Smart Hives & AI', icon: Cpu },
-              { id: 'alerts', label: 'Alert Center', icon: Bell, badge: unreadAlertsCount },
-              { id: 'quality', label: 'Quality Inspections Audit', icon: TestTube },
-              { id: 'processing', label: 'Processing & Pack Records', icon: Factory },
-              { id: 'distribution', label: 'Logistics Records', icon: Truck },
-              { id: 'marketplace', label: 'Honey Marketplace', icon: ShoppingBag }
+              { id: 'blockchain', label: 'Blockchain Ledger Audit', icon: Link },
+              { id: 'tamper', label: 'Tamper Simulation Lab', icon: ShieldAlert },
+              { id: 'database', label: 'Database Records Output', icon: Database },
+              { id: 'analytics', label: 'National Analytics', icon: BarChart2 },
+              { id: 'architecture', label: 'System Architecture', icon: Layers },
+              { id: 'profile', label: 'My Apiary Profile', icon: User },
             ]
           }
         ];
@@ -97,6 +98,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
               { id: 'qr', label: 'QR Management Generator', icon: QrCode },
               { id: 'marketplace', label: 'Honey Marketplace', icon: ShoppingBag }
             ]
+          },
+          {
+            group: '🌐 Other System Modules',
+            items: [
+              { id: 'quality', label: 'Quality Inspections Lab', icon: TestTube },
+              { id: 'processing', label: 'Processing & Bottling', icon: Factory },
+              { id: 'distribution', label: 'Cold-Chain Logistics', icon: Truck },
+              { id: 'blockchain', label: 'Blockchain Ledger Audit', icon: Link },
+              { id: 'tamper', label: 'Tamper Simulation Lab', icon: ShieldAlert },
+              { id: 'database', label: 'Database Records Output', icon: Database },
+              { id: 'analytics', label: 'National Analytics', icon: BarChart2 },
+            ]
           }
         ];
 
@@ -107,21 +120,22 @@ export const Sidebar: React.FC<SidebarProps> = ({
             items: [
               { id: 'dashboard', label: 'Facility Dashboard', icon: LayoutDashboard },
               { id: 'quality', label: 'FSSAI Quality Testing', icon: TestTube },
-              { id: 'processing', label: 'Thermal Processing & Pack', icon: Factory }
-            ]
-          },
-          {
-            group: '📦 Batch Management',
-            items: [
+              { id: 'processing', label: 'Thermal Processing & Pack', icon: Factory },
               { id: 'batches', label: 'Honey Batches', icon: Package },
               { id: 'traceability', label: 'Batch Traceability', icon: Search },
-              { id: 'qr', label: 'QR Label Printing', icon: QrCode }
+              { id: 'qr', label: 'QR Label Printing', icon: QrCode },
+              { id: 'blockchain', label: 'Blockchain Ledger', icon: Link },
             ]
           },
           {
-            group: '⛓️ Ledger Audit',
+            group: '🌐 Other System Modules',
             items: [
-              { id: 'blockchain', label: 'Blockchain Ledger', icon: Link }
+              { id: 'beekeeping', label: 'Smart Hives & AI Telemetry', icon: Cpu },
+              { id: 'alerts', label: 'Alert Center', icon: Bell, badge: unreadAlertsCount },
+              { id: 'distribution', label: 'Logistics Transport', icon: Truck },
+              { id: 'marketplace', label: 'Honey Marketplace', icon: ShoppingBag },
+              { id: 'tamper', label: 'Tamper Lab', icon: ShieldAlert },
+              { id: 'database', label: 'Database Output', icon: Database },
             ]
           }
         ];
@@ -134,14 +148,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               { id: 'dashboard', label: 'Logistics Dashboard', icon: LayoutDashboard },
               { id: 'distribution', label: 'Cold-Chain Transport', icon: Truck },
               { id: 'batches', label: 'Shipment Batches', icon: Package },
-              { id: 'traceability', label: 'Shipment Journey', icon: Search }
+              { id: 'traceability', label: 'Shipment Journey', icon: Search },
+              { id: 'blockchain', label: 'Blockchain Ledger Audit', icon: Link },
+              { id: 'qr', label: 'QR Shipment Scanner', icon: QrCode },
             ]
           },
           {
-            group: '⛓️ Verification',
+            group: '🌐 Other System Modules',
             items: [
-              { id: 'blockchain', label: 'Blockchain Ledger Audit', icon: Link },
-              { id: 'qr', label: 'QR Shipment Scanner', icon: QrCode }
+              { id: 'quality', label: 'Quality Testing', icon: TestTube },
+              { id: 'processing', label: 'Processing Records', icon: Factory },
+              { id: 'beekeeping', label: 'Smart Hives', icon: Cpu },
+              { id: 'marketplace', label: 'Marketplace', icon: ShoppingBag },
+              { id: 'database', label: 'Database Output', icon: Database },
             ]
           }
         ];
@@ -155,6 +174,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               { id: 'verify', label: 'Digital Honey Passport', icon: QrCode },
               { id: 'traceability', label: 'Batch Journey Lookup', icon: Search },
               { id: 'marketplace', label: 'Verified Honey Marketplace', icon: ShoppingBag }
+            ]
+          },
+          {
+            group: '🌐 Explore Enterprise Modules',
+            items: [
+              { id: 'dashboard', label: 'Apiary Dashboard', icon: LayoutDashboard },
+              { id: 'blockchain', label: 'Blockchain Ledger Audit', icon: Link },
+              { id: 'tamper', label: 'Tamper Simulation Lab', icon: ShieldAlert },
             ]
           }
         ];
@@ -215,6 +242,58 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
         </button>
       </div>
+
+      {/* Quick Role Switcher Pills (Top Header for instant module access) */}
+      {!collapsed && (
+        <div className="p-2 border-b border-slate-800/80 bg-slate-950/40">
+          <div className="text-[9px] font-black uppercase tracking-wider text-slate-500 px-1 mb-1 font-mono flex items-center justify-between">
+            <span>PORTAL VIEW:</span>
+            <span className="text-amber-400 font-extrabold">{userRole.toUpperCase()}</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1 text-[10px]">
+            <button
+              onClick={() => handleRoleSelect('Admin', 'dashboard')}
+              className={`px-2 py-1 rounded-lg font-bold transition-all text-left flex items-center space-x-1 ${
+                userRole === 'Admin'
+                  ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <span>🛡️ All Views</span>
+            </button>
+            <button
+              onClick={() => handleRoleSelect('Beekeeper', 'dashboard')}
+              className={`px-2 py-1 rounded-lg font-bold transition-all text-left flex items-center space-x-1 ${
+                userRole === 'Beekeeper'
+                  ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <span>👨‍🌾 Beekeeper</span>
+            </button>
+            <button
+              onClick={() => handleRoleSelect('Processor', 'quality')}
+              className={`px-2 py-1 rounded-lg font-bold transition-all text-left flex items-center space-x-1 ${
+                userRole === 'Processor'
+                  ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <span>🧪 Lab / Proc</span>
+            </button>
+            <button
+              onClick={() => handleRoleSelect('Distributor', 'distribution')}
+              className={`px-2 py-1 rounded-lg font-bold transition-all text-left flex items-center space-x-1 ${
+                userRole === 'Distributor'
+                  ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
+                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
+              }`}
+            >
+              <span>🚚 Logistics</span>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Navigation Links */}
       <div className="flex-1 overflow-y-auto py-3 px-3 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">

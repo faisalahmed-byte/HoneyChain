@@ -110,7 +110,8 @@ function setStorageItem<T>(key: string, val: T): void {
 export function getStoredBatches(): Batch[] {
   return getStorageItem<Batch[]>('HC_STORE_BATCHES', MOCK_BATCHES);
 }
-export function addStoredBatch(newBatch: Batch): void {
+
+export function addStoredBatch(newBatch: Batch): { newBatch: Batch; newBlock: BlockchainBlock } {
   const batches = getStoredBatches();
   batches.unshift(newBatch);
   setStorageItem('HC_STORE_BATCHES', batches);
@@ -132,32 +133,34 @@ export function addStoredBatch(newBatch: Batch): void {
   };
   blocks.push(newBlock);
   setStorageItem('HC_STORE_BLOCKS', blocks);
+  return { newBatch, newBlock };
 }
 
-export function updateStoredBatchStatus(id: string, status: Batch['status'], eventType: string, actor: string, details: string): void {
+export function updateStoredBatchStatus(id: string, status: Batch['status'], eventType: string, actor: string, details: string): { newBlock: BlockchainBlock } {
   const batches = getStoredBatches();
-  const batch = batches.find(b => b.id === id);
+  const batch = batches.find(b => b.id.toLowerCase() === id.toLowerCase());
   if (batch) {
     batch.status = status;
     setStorageItem('HC_STORE_BATCHES', batches);
-
-    const blocks = getStoredBlocks();
-    const lastBlock = blocks[blocks.length - 1];
-    const newBlock: BlockchainBlock = {
-      block_index: blocks.length + 1,
-      batch_id: id,
-      event_type: eventType,
-      timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
-      actor,
-      location: batch.location,
-      details,
-      previous_hash: lastBlock ? lastBlock.current_hash : '0000000000000000000000000000000000000000000000000000000000000000',
-      current_hash: generateMockHash(),
-      is_tampered: 0,
-    };
-    blocks.push(newBlock);
-    setStorageItem('HC_STORE_BLOCKS', blocks);
   }
+
+  const blocks = getStoredBlocks();
+  const lastBlock = blocks[blocks.length - 1];
+  const newBlock: BlockchainBlock = {
+    block_index: blocks.length + 1,
+    batch_id: id,
+    event_type: eventType,
+    timestamp: new Date().toISOString().replace('T', ' ').slice(0, 19),
+    actor,
+    location: batch ? batch.location : 'Processing Facility',
+    details,
+    previous_hash: lastBlock ? lastBlock.current_hash : '0000000000000000000000000000000000000000000000000000000000000000',
+    current_hash: generateMockHash(),
+    is_tampered: 0,
+  };
+  blocks.push(newBlock);
+  setStorageItem('HC_STORE_BLOCKS', blocks);
+  return { newBlock };
 }
 
 // Alerts Store
@@ -295,63 +298,156 @@ export function getMockDashboard(query?: string): DashboardData {
   };
 }
 
-// ── Verify Batch (Consumer Passport) ──
+// ── Verify Batch (Consumer Passport & Journey) ──
 export function getMockVerifyData(batchId: string) {
   const batches = getStoredBatches();
-  const batch = batches.find(b => b.id.toLowerCase() === batchId.toLowerCase()) || batches[batches.length - 1];
+  const batch = batches.find(b => b.id.toLowerCase() === batchId.toLowerCase()) || batches[0];
   const allBlocks = getStoredBlocks();
   const blocks = allBlocks.filter(b => b.batch_id.toLowerCase() === batch.id.toLowerCase());
   const isTampered = blocks.some(b => b.is_tampered === 1);
+  const matchedHive = MOCK_HIVES.find(h => h.hive_id === batch.hive_id) || MOCK_HIVES[0];
+
+  const qualityData = {
+    id: 1,
+    batch_id: batch.id,
+    inspector_name: 'Dr. A. K. Verma (National Honey Testing Lab)',
+    moisture_pct: batch.moisture_pct || 17.2,
+    purity_pct: 99.8,
+    ph_level: 3.85,
+    hmf_mg_kg: 12.4,
+    adulteration_test: 'Passed (C4 Sugar & NMR Clean)',
+    pollen_analysis: 'Dominant Floral Nectar Pollen (> 75%)',
+    colour: 'Golden Amber',
+    aroma: 'Rich Floral Medicinal',
+    quality_grade: batch.initial_quality_grade || 'Grade A+',
+    status: 'Passed',
+    notes: 'Exceeds FSSAI and BIS export purity standards. Zero adulterants detected.',
+    created_at: batch.created_at,
+  };
+
+  const processingData = {
+    id: 1,
+    batch_id: batch.id,
+    processor_name: 'Deccan Honey Processing Facility',
+    facility_name: 'FSSAI Certified Unit #TS-NZB-04',
+    processing_date: batch.extraction_date,
+    filtering_status: 'Completed',
+    heating_temp_c: 40,
+    filtration_method: 'Cold Micro-mesh (Raw Unpasteurized)',
+    packaging_date: batch.extraction_date,
+    package_size_g: 500,
+    jars_count: Math.ceil((batch.quantity_kg || 20) * 2),
+    notes: 'Low-temperature processing preserving natural enzymes and diastase activity.',
+    created_at: batch.created_at,
+  };
+
+  const distributionData = {
+    id: 1,
+    batch_id: batch.id,
+    distributor_name: 'Green Logistics India',
+    origin: batch.location,
+    destination: 'Metro Retail Outlets & Organic Stores',
+    transport_vehicle: 'Refrigerated Cold-Chain Fleet #TS-09-GL',
+    dispatch_date: batch.extraction_date,
+    delivery_date: batch.extraction_date,
+    storage_temp_c: 22,
+    shipment_status: 'Delivered',
+    notes: 'Cold chain temperature strictly logged between 18-24°C throughout transit.',
+    created_at: batch.created_at,
+  };
+
+  const timeline = [
+    {
+      stage: 'HARVESTED',
+      icon: '🐝',
+      title: 'Harvested at Apiary',
+      actor: batch.beekeeper_name,
+      location: batch.location,
+      date: batch.extraction_date,
+      details: `Floral Source: ${batch.floral_source} | Hive: ${batch.hive_id} | Quantity: ${batch.quantity_kg} kg | Moisture: ${batch.moisture_pct}%`,
+      completed: true,
+      block: blocks[0] || allBlocks[0],
+    },
+    {
+      stage: 'COLLECTED',
+      icon: '🧺',
+      title: 'Collected & Aggregated',
+      actor: `${batch.apiary_name} Hub`,
+      location: batch.location,
+      date: batch.extraction_date,
+      details: 'Sealed in food-grade stainless transport cans with tamper seals',
+      completed: true,
+      block: blocks[0] || allBlocks[0],
+    },
+    {
+      stage: 'QUALITY CHECK',
+      icon: '🧪',
+      title: 'Quality Tested & Verified',
+      actor: qualityData.inspector_name,
+      location: 'Regional Testing Lab',
+      date: batch.extraction_date,
+      details: `Purity: ${qualityData.purity_pct}% | Grade: ${qualityData.quality_grade} | Test: ${qualityData.adulteration_test}`,
+      completed: batch.status !== 'Harvested',
+      block: blocks[1] || blocks[0],
+    },
+    {
+      stage: 'PROCESSED',
+      icon: '🏭',
+      title: 'Filtered & Gently Warmed',
+      actor: processingData.processor_name,
+      location: processingData.facility_name,
+      date: processingData.processing_date,
+      details: `Heating: ${processingData.heating_temp_c}°C | Filtration: ${processingData.filtration_method}`,
+      completed: ['Processed', 'Distributed', 'Delivered'].includes(batch.status),
+      block: blocks[2] || blocks[0],
+    },
+    {
+      stage: 'PACKAGED',
+      icon: '📦',
+      title: 'Packaged & Sealed',
+      actor: processingData.facility_name,
+      location: batch.location,
+      date: processingData.packaging_date,
+      details: `Bottled into ${processingData.jars_count} x ${processingData.package_size_g}g glass jars with QR integrity seals`,
+      completed: ['Processed', 'Distributed', 'Delivered'].includes(batch.status),
+      block: blocks[2] || blocks[0],
+    },
+    {
+      stage: 'DISTRIBUTED',
+      icon: '🚚',
+      title: 'Distributed via Cold-Chain',
+      actor: distributionData.distributor_name,
+      location: `${distributionData.origin} → ${distributionData.destination}`,
+      date: distributionData.dispatch_date,
+      details: `Vehicle: ${distributionData.transport_vehicle} | Storage Temp: ${distributionData.storage_temp_c}°C`,
+      completed: ['Distributed', 'Delivered'].includes(batch.status),
+      block: blocks[3] || blocks[0],
+    },
+    {
+      stage: 'CONSUMER',
+      icon: '🏠',
+      title: 'Ready for Consumer',
+      actor: 'End Consumer',
+      location: 'Retail / Home',
+      date: 'Verified Today',
+      details: 'QR code scanned and authenticity verified via Honey Chain blockchain',
+      completed: true,
+    },
+  ];
 
   return {
+    authentic: !isTampered,
+    verificationMessage: !isTampered ? 'VERIFIED AUTHENTIC HONEY' : 'VERIFICATION FAILED',
+    batchId: batch.id,
     batch,
-    qualityCheck: {
-      id: 1,
-      batch_id: batch.id,
-      inspector_name: 'Dr. A. K. Verma (National Honey Testing Lab)',
-      moisture_pct: batch.moisture_pct || 17.2,
-      purity_pct: 99.8,
-      ph_level: 3.85,
-      hmf_mg_kg: 12.4,
-      adulteration_test: 'Passed (C4 Sugar & NMR Clean)',
-      pollen_analysis: 'Dominant Floral Nectar Pollen (> 75%)',
-      colour: 'Golden Amber',
-      aroma: 'Rich Floral Medicinal',
-      quality_grade: batch.initial_quality_grade || 'Grade A+',
-      status: 'Passed',
-      notes: 'Exceeds FSSAI and BIS export purity standards. Zero adulterants detected.',
-      created_at: batch.created_at,
-    },
-    processing: {
-      id: 1,
-      batch_id: batch.id,
-      processor_name: 'Deccan Honey Processing Facility',
-      facility_name: 'FSSAI Certified Unit #TS-NZB-04',
-      processing_date: batch.extraction_date,
-      filtering_status: 'Completed',
-      heating_temp_c: 40,
-      filtration_method: 'Cold Micro-mesh (Raw Unpasteurized)',
-      packaging_date: batch.extraction_date,
-      package_size_g: 500,
-      jars_count: Math.ceil(batch.quantity_kg * 2),
-      notes: 'Low-temperature processing preserving natural enzymes and diastase activity.',
-      created_at: batch.created_at,
-    },
-    distribution: {
-      id: 1,
-      batch_id: batch.id,
-      distributor_name: 'Green Logistics India',
-      origin: batch.location,
-      destination: 'Metro Retail Outlets & Organic Stores',
-      transport_vehicle: 'Refrigerated Cold-Chain Fleet #TS-09-GL',
-      dispatch_date: batch.extraction_date,
-      delivery_date: batch.extraction_date,
-      storage_temp_c: 22,
-      shipment_status: 'Delivered',
-      notes: 'Cold chain temperature strictly logged between 18-24°C throughout transit.',
-      created_at: batch.created_at,
-    },
+    hive: matchedHive,
+    quality: qualityData,
+    qualityCheck: qualityData,
+    processing: processingData,
+    distribution: distributionData,
+    timeline,
     blockchain: blocks.length > 0 ? blocks : [allBlocks[0]],
+    batchBlocks: blocks.length > 0 ? blocks : [allBlocks[0]],
     verification: {
       valid: !isTampered,
       message: isTampered
@@ -374,6 +470,13 @@ export function getMockVerifyData(batchId: string) {
         : 'This honey is verified 100% authentic, pure, and safe for consumption.',
       dataNotice: 'AI-powered authenticity verification validated via SHA-256 cryptographic blockchain audit.',
     },
+    aiInsights: {
+      colonyHealth: 94,
+      stressRisk: 6,
+      productivity: 'High',
+      harvestReadiness: 'READY',
+      harvestPrediction: { expectedDays: 5, expectedYieldKg: 12.0, confidencePct: 91, trend: 'Near peak production' }
+    }
   };
 }
 

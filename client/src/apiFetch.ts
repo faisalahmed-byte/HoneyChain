@@ -29,7 +29,7 @@ const isLocalhost = typeof window !== 'undefined' &&
    window.location.hostname.endsWith('.local'));
 
 /**
- * Resolves API requests to local mock database.
+ * Resolves API requests to local mock database with matching backend signatures.
  */
 function resolveMockRoute(url: string, options?: RequestInit): any {
   const [pathname, queryString] = url.split('?');
@@ -67,8 +67,15 @@ function resolveMockRoute(url: string, options?: RequestInit): any {
           status: 'Harvested' as const,
           created_at: new Date().toISOString().replace('T', ' ').slice(0, 19),
         };
-        addStoredBatch(newBatch);
-        return { success: true, id: newId, message: 'Batch successfully created and recorded to blockchain' };
+        const { newBlock } = addStoredBatch(newBatch);
+        return {
+          success: true,
+          id: newId,
+          batchId: newId,
+          blockIndex: newBlock.block_index,
+          hash: newBlock.current_hash,
+          message: 'Batch successfully created and recorded to blockchain',
+        };
       } catch (e: any) {
         return { success: false, error: e.message };
       }
@@ -92,14 +99,20 @@ function resolveMockRoute(url: string, options?: RequestInit): any {
     const batchId = qualityMatch[1];
     let body: any = {};
     try { body = JSON.parse((options?.body as string) || '{}'); } catch {}
-    updateStoredBatchStatus(
+    const { newBlock } = updateStoredBatchStatus(
       batchId,
       'Quality Checked',
       'QUALITY_CHECK',
       body.inspector_name || 'FSSAI Lab Inspector',
       `Moisture ${body.moisture_pct || 17.2}%, Purity ${body.purity_pct || 99.8}% — ${body.quality_grade || 'Grade A+'} Certified`
     );
-    return { success: true, message: `Quality inspection recorded for ${batchId}` };
+    return {
+      success: true,
+      batchId,
+      blockIndex: newBlock.block_index,
+      hash: newBlock.current_hash,
+      message: `Quality inspection recorded for ${batchId}`,
+    };
   }
 
   const processMatch = pathname.match(/^\/api\/batches\/([^/]+)\/process$/);
@@ -107,14 +120,20 @@ function resolveMockRoute(url: string, options?: RequestInit): any {
     const batchId = processMatch[1];
     let body: any = {};
     try { body = JSON.parse((options?.body as string) || '{}'); } catch {}
-    updateStoredBatchStatus(
+    const { newBlock } = updateStoredBatchStatus(
       batchId,
       'Processed',
       'PROCESSING',
       body.processor_name || 'Deccan Honey Processing Facility',
       `Thermal filtered at ${body.heating_temp_c || 40}°C, Micro-mesh filtered, Packed in jars`
     );
-    return { success: true, message: `Processing stage recorded for ${batchId}` };
+    return {
+      success: true,
+      batchId,
+      blockIndex: newBlock.block_index,
+      hash: newBlock.current_hash,
+      message: `Processing stage recorded for ${batchId}`,
+    };
   }
 
   const distributeMatch = pathname.match(/^\/api\/batches\/([^/]+)\/distribute$/);
@@ -122,14 +141,20 @@ function resolveMockRoute(url: string, options?: RequestInit): any {
     const batchId = distributeMatch[1];
     let body: any = {};
     try { body = JSON.parse((options?.body as string) || '{}'); } catch {}
-    updateStoredBatchStatus(
+    const { newBlock } = updateStoredBatchStatus(
       batchId,
       'Distributed',
       'DISTRIBUTION',
       body.distributor_name || 'Green Logistics India',
       `Dispatched to ${body.destination || 'Metro Retail Outlets'} via Cold-Chain transport`
     );
-    return { success: true, message: `Distribution logistics recorded for ${batchId}` };
+    return {
+      success: true,
+      batchId,
+      blockIndex: newBlock.block_index,
+      hash: newBlock.current_hash,
+      message: `Distribution logistics recorded for ${batchId}`,
+    };
   }
 
   // Single Batch GET
@@ -140,7 +165,7 @@ function resolveMockRoute(url: string, options?: RequestInit): any {
     return found || getStoredBatches()[0];
   }
 
-  // 4. Consumer Passport Verification
+  // 4. Consumer Passport Verification & Traceability
   const verifyMatch = pathname.match(/^\/api\/verify\/([^/]+)/);
   if (verifyMatch) {
     const batchId = verifyMatch[1];
