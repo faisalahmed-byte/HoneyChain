@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { UserRole, DashboardData, BeekeeperProfile } from './types';
+import { apiFetch } from './apiFetch';
 import { Sidebar } from './components/Sidebar';
 import { TopHeader, INITIAL_BEEKEEPERS } from './components/TopHeader';
 import { LandingPage } from './components/LandingPage';
@@ -123,7 +124,7 @@ export const App: React.FC = () => {
       const q = (userRole === 'Beekeeper' && activeBeekeeper) 
         ? `?beekeeper=${encodeURIComponent(activeBeekeeper.name)}&location=${encodeURIComponent(activeBeekeeper.location)}` 
         : '';
-      const res = await fetch(`/api/dashboard${q}`);
+      const res = await apiFetch(`/api/dashboard${q}`);
       const data = await res.json();
       setDashboardData(data);
     } catch (e) {

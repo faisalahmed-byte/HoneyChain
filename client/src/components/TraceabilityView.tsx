@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiFetch';
 import type { Batch, BeekeeperProfile } from '../types';
 import { 
   Search, MapPin, Calendar, ShieldCheck, 
@@ -47,7 +48,7 @@ export const TraceabilityView: React.FC<TraceabilityViewProps> = ({
   const fetchBatches = async () => {
     try {
       const q = activeBeekeeper ? `?beekeeper=${encodeURIComponent(activeBeekeeper.name.split(' ')[0])}` : '';
-      const res = await fetch(`/api/batches${q}`);
+      const res = await apiFetch(`/api/batches${q}`);
       const data = await res.json();
       if (Array.isArray(data)) setBatchesList(data);
     } catch (e) {}
@@ -56,7 +57,7 @@ export const TraceabilityView: React.FC<TraceabilityViewProps> = ({
   const loadBatchTrace = async (id: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/verify/${id}`);
+      const res = await apiFetch(`/api/verify/${id}`);
       const data = await res.json();
       setBatchData(data);
       onSelectBatch(id);

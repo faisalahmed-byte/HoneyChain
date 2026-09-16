@@ -3,6 +3,7 @@ import {
   AlertTriangle, CheckCircle2, ShieldAlert, 
   Link, RotateCcw, Sparkles 
 } from 'lucide-react';
+import { apiFetch } from '../apiFetch';
 
 export const TamperDemoView: React.FC = () => {
   const [loading, setLoading] = useState(false);
@@ -16,7 +17,7 @@ export const TamperDemoView: React.FC = () => {
     setRestoreResult(null);
 
     try {
-      const res = await fetch('/api/blockchain/tamper-demo', {
+      const res = await apiFetch('/api/blockchain/tamper-demo', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ block_index: 2, field: 'quantity_kg', new_value: 500 })
@@ -33,7 +34,7 @@ export const TamperDemoView: React.FC = () => {
   const handleVerify = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/blockchain/verify', { method: 'POST' });
+      const res = await apiFetch('/api/blockchain/verify', { method: 'POST' });
       const data = await res.json();
       setVerifyResult(data);
     } catch (e) {
@@ -49,7 +50,7 @@ export const TamperDemoView: React.FC = () => {
     setVerifyResult(null);
 
     try {
-      const res = await fetch('/api/blockchain/restore', { method: 'POST' });
+      const res = await apiFetch('/api/blockchain/restore', { method: 'POST' });
       const data = await res.json();
       setRestoreResult(data);
     } catch (e) {

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import type { DashboardData, Hive, BeekeeperProfile } from '../types';
+import { apiFetch } from '../apiFetch';
 import { 
   Package, ShieldCheck, Scale, 
   BarChart3, PieChart as PieIcon, MapPin, RefreshCw,
@@ -25,7 +26,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
   const [hivesList, setHivesList] = useState<Hive[]>([]);
 
   useEffect(() => {
-    fetch('/api/hives')
+    apiFetch('/api/hives')
       .then(res => res.json())
       .then(d => {
         if (d.hives) setHivesList(d.hives);

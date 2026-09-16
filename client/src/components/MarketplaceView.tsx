@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ShoppingBag, ShieldCheck, QrCode, Filter, Search } from 'lucide-react';
+import { apiFetch } from '../apiFetch';
 
 interface Product {
   id: string;
@@ -22,7 +23,7 @@ export const MarketplaceView: React.FC<MarketplaceViewProps> = ({ onNavigate }) 
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetch('/api/marketplace')
+    apiFetch('/api/marketplace')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setProducts(data);

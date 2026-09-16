@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiFetch';
 import type { HiveAlert, BeekeeperProfile } from '../types';
 import { AlertTriangle, CheckCircle2, RefreshCw, Filter, Search } from 'lucide-react';
 
@@ -25,7 +26,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ onNavigate: _onNavigate,
       else if (filter === 'critical' || filter === 'warning') statusParam = 'active';
 
       const bkQuery = activeBeekeeper ? `&beekeeper=${encodeURIComponent(activeBeekeeper.name)}&location=${encodeURIComponent(activeBeekeeper.location)}` : '';
-      const res = await fetch(`/api/alerts?status=${statusParam}${bkQuery}`);
+      const res = await apiFetch(`/api/alerts?status=${statusParam}${bkQuery}`);
       const data = await res.json();
       if (Array.isArray(data)) setAlerts(data);
     } catch (e) {
@@ -37,7 +38,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ onNavigate: _onNavigate,
 
   const handleResolve = async (id: number) => {
     try {
-      const res = await fetch(`/api/alerts/${id}/resolve`, { method: 'POST' });
+      const res = await apiFetch(`/api/alerts/${id}/resolve`, { method: 'POST' });
       if (res.ok) {
         fetchAlerts();
       } else {

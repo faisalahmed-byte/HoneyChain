@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiFetch';
 import type { Hive, HiveAlert, SmartRecommendation, BeekeeperProfile } from '../types';
 import { Cpu, AlertTriangle, Thermometer, Droplets, Heart, Sparkles, RefreshCw, Scale, ChevronDown, ChevronUp, Info, X, Zap, Activity } from 'lucide-react';
 
@@ -21,7 +22,7 @@ export const SmartBeekeepingView: React.FC<SmartBeekeepingViewProps> = ({ active
   const fetchTelemetry = async () => {
     try {
       const q = activeBeekeeper ? `?beekeeper=${encodeURIComponent(activeBeekeeper.name)}&location=${encodeURIComponent(activeBeekeeper.location)}` : '';
-      const res = await fetch(`/api/hives${q}`);
+      const res = await apiFetch(`/api/hives${q}`);
       const data = await res.json();
       setHives(data.hives || []);
       setAlerts(data.alerts || []);

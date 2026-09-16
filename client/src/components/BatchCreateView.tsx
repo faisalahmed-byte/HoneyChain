@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { BeekeeperProfile } from '../types';
 import { Package, CheckCircle2, Link, Printer, ArrowRight, Sparkles } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { apiFetch } from '../apiFetch';
 
 interface BatchCreateViewProps {
   onSuccess: (batchId: string) => void;
@@ -49,7 +50,7 @@ export const BatchCreateView: React.FC<BatchCreateViewProps> = ({ onSuccess, onN
     setResult(null);
 
     try {
-      const res = await fetch('/api/batches', {
+      const res = await apiFetch('/api/batches', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData)

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Database, RefreshCw, Search, Key, Users, Package, Cpu, Link, Code } from 'lucide-react';
+import { apiFetch } from '../apiFetch';
 
 export const DatabaseOutputView: React.FC = () => {
   const [data, setData] = useState<any>(null);
@@ -14,7 +15,7 @@ export const DatabaseOutputView: React.FC = () => {
   const fetchDatabaseOutput = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/database/output');
+      const res = await apiFetch('/api/database/output');
       const json = await res.json();
       setData(json);
     } catch (e) {

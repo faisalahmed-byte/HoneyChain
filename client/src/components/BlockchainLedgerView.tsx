@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiFetch';
 import type { BlockchainBlock } from '../types';
 import { 
   Link, AlertTriangle, CheckCircle2, 
@@ -24,7 +25,7 @@ export const BlockchainLedgerView: React.FC<BlockchainLedgerViewProps> = ({ onNa
     setLoading(true);
     try {
       const url = filterBatchId ? `/api/blockchain?batch_id=${filterBatchId}` : '/api/blockchain';
-      const res = await fetch(url);
+      const res = await apiFetch(url);
       const data = await res.json();
       setBlocks(data.blocks || []);
       setVerificationResult(data.verification);
@@ -38,7 +39,7 @@ export const BlockchainLedgerView: React.FC<BlockchainLedgerViewProps> = ({ onNa
   const handleVerifyBlockchain = async () => {
     setVerifying(true);
     try {
-      const res = await fetch('/api/blockchain/verify', { method: 'POST' });
+      const res = await apiFetch('/api/blockchain/verify', { method: 'POST' });
       const data = await res.json();
       setVerificationResult(data);
     } catch (e) {

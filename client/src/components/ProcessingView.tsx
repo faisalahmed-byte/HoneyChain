@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiFetch';
 import type { Batch } from '../types';
 import { Factory, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 
@@ -31,7 +32,7 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({ onNavigate }) =>
 
   const fetchBatches = async () => {
     try {
-      const res = await fetch('/api/batches');
+      const res = await apiFetch('/api/batches');
       const data = await res.json();
       if (Array.isArray(data)) {
         setBatches(data);
@@ -47,7 +48,7 @@ export const ProcessingView: React.FC<ProcessingViewProps> = ({ onNavigate }) =>
     setResult(null);
 
     try {
-      const res = await fetch(`/api/batches/${selectedBatchId}/process`, {
+      const res = await apiFetch(`/api/batches/${selectedBatchId}/process`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

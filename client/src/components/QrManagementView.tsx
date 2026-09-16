@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import type { Batch } from '../types';
 import { QrCode, Search, Download, Printer, ExternalLink, ShieldCheck, Filter, X } from 'lucide-react';
 import { QRCodeSVG } from 'qrcode.react';
+import { apiFetch } from '../apiFetch';
 
 interface QrManagementViewProps {
   onNavigate: (tab: string, batchId?: string) => void;
@@ -14,7 +15,7 @@ export const QrManagementView: React.FC<QrManagementViewProps> = ({ onNavigate }
   const [selectedBatchForModal, setSelectedBatchForModal] = useState<Batch | null>(null);
 
   useEffect(() => {
-    fetch('/api/batches')
+    apiFetch('/api/batches')
       .then((res) => res.json())
       .then((data) => {
         if (Array.isArray(data)) setBatches(data);

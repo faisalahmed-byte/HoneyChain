@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiFetch';
 import { 
   ShieldCheck, 
   Sparkles, ChevronDown, ChevronUp, Link, Cpu, Search, CheckCircle2, MapPin, Calendar
@@ -26,7 +27,7 @@ export const ConsumerVerificationView: React.FC<ConsumerVerificationViewProps> =
   const verifyBatch = async (id: string) => {
     setLoading(true);
     try {
-      const res = await fetch(`/api/verify/${id}`);
+      const res = await apiFetch(`/api/verify/${id}`);
       const resData = await res.json();
       setData(resData);
     } catch (e) {

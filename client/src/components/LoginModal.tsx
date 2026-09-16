@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { UserRole, BeekeeperProfile } from '../types';
 import { ShieldCheck, UserCheck, Lock, User, X, ArrowRight } from 'lucide-react';
+import { apiFetch } from '../apiFetch';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -42,7 +43,7 @@ export const LoginModal: React.FC<LoginModalProps> = ({
         };
 
     try {
-      const res = await fetch('/api/auth/login', {
+      const res = await apiFetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)

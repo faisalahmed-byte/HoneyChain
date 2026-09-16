@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { apiFetch } from '../apiFetch';
 import type { Batch } from '../types';
 import { Truck, CheckCircle2, ArrowRight, Sparkles } from 'lucide-react';
 
@@ -30,7 +31,7 @@ export const DistributionView: React.FC<DistributionViewProps> = ({ onNavigate }
 
   const fetchBatches = async () => {
     try {
-      const res = await fetch('/api/batches');
+      const res = await apiFetch('/api/batches');
       const data = await res.json();
       if (Array.isArray(data)) {
         setBatches(data);
@@ -46,7 +47,7 @@ export const DistributionView: React.FC<DistributionViewProps> = ({ onNavigate }
     setResult(null);
 
     try {
-      const res = await fetch(`/api/batches/${selectedBatchId}/distribute`, {
+      const res = await apiFetch(`/api/batches/${selectedBatchId}/distribute`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

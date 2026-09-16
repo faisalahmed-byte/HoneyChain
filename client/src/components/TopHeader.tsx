@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { UserRole, Batch, HiveAlert, BeekeeperProfile } from '../types';
 import { Search, Bell, ShieldCheck, ChevronRight, Package, Cpu, AlertTriangle, X } from 'lucide-react';
+import { apiFetch } from '../apiFetch';
 
 interface TopHeaderProps {
   currentTab: string;
@@ -140,9 +141,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     const q = searchQuery.toLowerCase().trim();
 
     Promise.all([
-      fetch('/api/batches').then(res => res.json()).catch(() => []),
-      fetch('/api/hives').then(res => res.json()).catch(() => ({ hives: [], alerts: [] })),
-      fetch('/api/alerts?status=all').then(res => res.json()).catch(() => [])
+      apiFetch('/api/batches').then(res => res.json()).catch(() => []),
+      apiFetch('/api/hives').then(res => res.json()).catch(() => ({ hives: [], alerts: [] })),
+      apiFetch('/api/alerts?status=all').then(res => res.json()).catch(() => [])
     ]).then(([batchesData, hivesData, alertsData]) => {
       const batches = Array.isArray(batchesData)
         ? batchesData.filter((b: Batch) =>
