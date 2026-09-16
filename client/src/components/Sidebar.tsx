@@ -243,57 +243,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
       </div>
 
-      {/* Quick Role Switcher Pills (Top Header for instant module access) */}
-      {!collapsed && (
-        <div className="p-2 border-b border-slate-800/80 bg-slate-950/40">
-          <div className="text-[9px] font-black uppercase tracking-wider text-slate-500 px-1 mb-1 font-mono flex items-center justify-between">
-            <span>PORTAL VIEW:</span>
-            <span className="text-amber-400 font-extrabold">{userRole.toUpperCase()}</span>
-          </div>
-          <div className="grid grid-cols-2 gap-1 text-[10px]">
-            <button
-              onClick={() => handleRoleSelect('Admin', 'dashboard')}
-              className={`px-2 py-1 rounded-lg font-bold transition-all text-left flex items-center space-x-1 ${
-                userRole === 'Admin'
-                  ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <span>🛡️ All Views</span>
-            </button>
-            <button
-              onClick={() => handleRoleSelect('Beekeeper', 'dashboard')}
-              className={`px-2 py-1 rounded-lg font-bold transition-all text-left flex items-center space-x-1 ${
-                userRole === 'Beekeeper'
-                  ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <span>👨‍🌾 Beekeeper</span>
-            </button>
-            <button
-              onClick={() => handleRoleSelect('Processor', 'quality')}
-              className={`px-2 py-1 rounded-lg font-bold transition-all text-left flex items-center space-x-1 ${
-                userRole === 'Processor'
-                  ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <span>🧪 Lab / Proc</span>
-            </button>
-            <button
-              onClick={() => handleRoleSelect('Distributor', 'distribution')}
-              className={`px-2 py-1 rounded-lg font-bold transition-all text-left flex items-center space-x-1 ${
-                userRole === 'Distributor'
-                  ? 'bg-amber-500 text-slate-950 shadow-xs font-black'
-                  : 'bg-slate-800/60 text-slate-300 hover:bg-slate-800'
-              }`}
-            >
-              <span>🚚 Logistics</span>
-            </button>
-          </div>
-        </div>
-      )}
+
 
       {/* Navigation Links */}
       <div className="flex-1 overflow-y-auto py-3 px-3 space-y-5 scrollbar-thin scrollbar-thumb-slate-800">
