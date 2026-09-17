@@ -26,12 +26,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
   const [hivesList, setHivesList] = useState<Hive[]>([]);
 
   useEffect(() => {
-    apiFetch('/api/hives')
-      .then(res => res.json())
-      .then(d => {
-        if (d.hives) setHivesList(d.hives);
-      })
-      .catch(console.error);
+    const fetchHives = () => {
+      apiFetch('/api/hives')
+        .then(res => res.json())
+        .then(d => {
+          if (d.hives) setHivesList(d.hives);
+        })
+        .catch(console.error);
+    };
+    fetchHives();
+    const interval = setInterval(fetchHives, 3000);
+    return () => clearInterval(interval);
   }, []);
 
   if (loading || !data) {
