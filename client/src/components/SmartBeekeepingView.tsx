@@ -17,6 +17,9 @@ export const SmartBeekeepingView: React.FC<SmartBeekeepingViewProps> = ({ active
 
   useEffect(() => {
     fetchTelemetry();
+    // Live IoT polling interval: refresh every 3 seconds for live hardware telemetry
+    const interval = setInterval(fetchTelemetry, 3000);
+    return () => clearInterval(interval);
   }, [activeBeekeeper]);
 
   const fetchTelemetry = async () => {

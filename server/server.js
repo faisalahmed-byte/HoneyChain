@@ -1073,7 +1073,7 @@ app.get('/api/hives/:id', (req, res) => {
   }
 });
 
-app.post('/api/iot/sensor', (req, res) => {
+app.post('/api/iot/sensor', async (req, res) => {
   try {
     const { hiveId, temperature, humidity, weight, battery, timestamp } = req.body;
     if (!hiveId) return res.status(400).json({ error: 'hiveId is required' });
@@ -1094,6 +1094,19 @@ app.post('/api/iot/sensor', (req, res) => {
       SET temperature_c = ?, humidity_pct = ?, weight_kg = ?, updated_at = ?
       WHERE hive_id = ?
     `).run(temp, hum, wt, now, hiveId);
+
+    // Sync live telemetry to Supabase beehives table
+    if (supabase) {
+      try {
+        await supabase.from('beehives').update({
+          temperature_c: temp,
+          humidity_pct: hum,
+          weight_kg: wt
+        }).eq('hive_id', hiveId);
+      } catch (sErr) {
+        console.warn('Supabase IoT sync warning:', sErr.message);
+      }
+    }
 
     if (temp > 36.5) {
       db.prepare(`
