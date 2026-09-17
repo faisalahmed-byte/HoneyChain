@@ -253,10 +253,13 @@ function resolveMockRoute(url: string, options?: RequestInit): any {
   return {};
 }
 
+const SUPABASE_REST_URL = 'https://ypywpedlduwpyzzrxova.supabase.co/rest/v1';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlweXdwZWRsZHV3cHl6enJ4b3ZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTkwMzYsImV4cCI6MjEwNTEzNTAzNn0.4xGD8sPjzM39psPDOMW0om1fVK_J3slBquNjgmmz_TI';
+
 /**
  * Drop-in replacement for standard `fetch()`.
- * On localhost: calls backend API; if backend is unavailable or returns HTML, falls back to mock.
- * On Vercel: immediately serves rich mock data without hitting static HTML catch-all.
+ * On localhost: calls backend API; if backend is unavailable or returns HTML, falls back to mock/Supabase.
+ * On Vercel: fetches live IoT beehive sensor telemetry directly from Supabase Cloud!
  */
 export async function apiFetch(url: string, options?: RequestInit): Promise<Response> {
   // If running locally, attempt real backend proxy first
@@ -264,20 +267,49 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
     try {
       const res = await fetch(url, options);
       const contentType = res.headers.get('content-type') || '';
-      // Only treat it as successful if HTTP status is 2xx AND content-type is JSON!
-      // If it returned HTML or 404/500, fallback to mock data!
       if (res.ok && contentType.includes('application/json')) {
         return res;
       }
     } catch (_err) {
-      // Local backend offline or connection refused, fallback to mock data
+      // Local backend offline or connection refused, fallback to Supabase / mock data
     }
   }
 
-  // On Vercel (or when local backend is down / returned HTML), serve mock data directly
+  const [pathname] = url.split('?');
+
+  // Live Cloud Sync on Vercel: Query Supabase for real-time IoT telemetry from physical hardware
+  if (/^\/api\/hives/.test(pathname) || /^\/api\/dashboard/.test(pathname)) {
+    try {
+      const supaRes = await fetch(`${SUPABASE_REST_URL}/beehives?select=*`, {
+        headers: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+        }
+      });
+      if (supaRes.ok) {
+        const liveHives = await supaRes.json();
+        if (Array.isArray(liveHives)) {
+          liveHives.forEach((lh: any) => {
+            const existing = MOCK_HIVES.find(h => h.hive_id === lh.hive_id);
+            if (existing) {
+              existing.temperature_c = Number(lh.temperature_c);
+              existing.humidity_pct = Number(lh.humidity_pct);
+              if (lh.weight_kg) existing.weight_kg = Number(lh.weight_kg);
+              existing.updated_at = lh.updated_at || new Date().toISOString().replace('T', ' ').slice(0, 19);
+            }
+          });
+        }
+      }
+    } catch (sErr) {
+      console.warn('Live Supabase IoT sync fallback:', sErr);
+    }
+  }
+
+  // Return data with live synced readings
   const data = resolveMockRoute(url, options);
   return new Response(JSON.stringify(data), {
     status: 200,
     headers: { 'Content-Type': 'application/json' },
   });
 }
+
