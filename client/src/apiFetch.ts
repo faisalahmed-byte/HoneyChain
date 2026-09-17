@@ -11,6 +11,7 @@ import {
   addStoredBatch,
   updateStoredBatchStatus,
   getStoredAlerts,
+  saveStoredAlerts,
   resolveStoredAlert,
   getStoredBlocks,
   tamperStoredBlock,
@@ -278,7 +279,7 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
   const [pathname] = url.split('?');
 
   // Live Cloud Sync on Vercel: Query Supabase for real-time IoT telemetry from physical hardware
-  if (/^\/api\/hives/.test(pathname) || /^\/api\/dashboard/.test(pathname)) {
+  if (/^\/api\/hives/.test(pathname) || /^\/api\/dashboard/.test(pathname) || /^\/api\/alerts/.test(pathname)) {
     try {
       const supaRes = await fetch(`${SUPABASE_REST_URL}/beehives?select=*`, {
         headers: {
@@ -289,15 +290,79 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
       if (supaRes.ok) {
         const liveHives = await supaRes.json();
         if (Array.isArray(liveHives)) {
+          const nowTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
+          const allStoredAlerts = getStoredAlerts();
+          let alertsModified = false;
+
           liveHives.forEach((lh: any) => {
             const existing = MOCK_HIVES.find(h => h.hive_id === lh.hive_id);
+            const tempVal = Number(lh.temperature_c);
+            const humVal = Number(lh.humidity_pct);
+
             if (existing) {
-              existing.temperature_c = Number(lh.temperature_c);
-              existing.humidity_pct = Number(lh.humidity_pct);
+              existing.temperature_c = tempVal;
+              existing.humidity_pct = humVal;
               if (lh.weight_kg) existing.weight_kg = Number(lh.weight_kg);
-              existing.updated_at = lh.updated_at || new Date().toISOString().replace('T', ' ').slice(0, 19);
+              existing.updated_at = lh.updated_at || nowTime;
+
+              if (existing.ai) {
+                if (tempVal > 36.5) {
+                  existing.ai.colonyHealth = Math.max(35, existing.ai.colonyHealth - 25);
+                  existing.ai.stressRisk = Math.min(95, existing.ai.stressRisk + 35);
+                  existing.ai.recommendation = `Critical temperature elevation (${tempVal}°C). Inspect hive ventilation and provide shade immediately.`;
+                }
+                if (humVal > 75) {
+                  existing.ai.stressRisk = Math.min(90, existing.ai.stressRisk + 20);
+                }
+              }
+            }
+
+            // Real-time Critical High Temperature Alert (Threshold: > 36.5°C)
+            if (tempVal > 36.5) {
+              const hasAlert = allStoredAlerts.some(a => a.hive_id === lh.hive_id && a.alert_type === 'High Temperature' && a.resolved === 0);
+              if (!hasAlert) {
+                allStoredAlerts.unshift({
+                  id: Date.now(),
+                  hive_id: lh.hive_id,
+                  alert_type: 'High Temperature',
+                  title: '🔥 CRITICAL: HIGH TEMPERATURE ALERT',
+                  message: `Hive ${lh.hive_id} internal temperature reached ${tempVal}°C (Optimal: 32.0 - 35.5°C).`,
+                  severity: 'Critical',
+                  timestamp: nowTime,
+                  sensor_value: `${tempVal}°C`,
+                  expected_range: '32.0 - 35.5°C',
+                  recommendation: 'Inspect hive ventilation and provide shade cover immediately.',
+                  resolved: 0
+                });
+                alertsModified = true;
+              }
+            }
+
+            // Real-time Warning High Humidity Alert (Threshold: > 75.0%)
+            if (humVal > 75.0) {
+              const hasAlert = allStoredAlerts.some(a => a.hive_id === lh.hive_id && a.alert_type === 'High Humidity' && a.resolved === 0);
+              if (!hasAlert) {
+                allStoredAlerts.unshift({
+                  id: Date.now() + 1,
+                  hive_id: lh.hive_id,
+                  alert_type: 'High Humidity',
+                  title: '💧 WARNING: HIGH HUMIDITY DETECTED',
+                  message: `Hive ${lh.hive_id} relative humidity reached ${humVal}% (Optimal: 55 - 72%).`,
+                  severity: 'Warning',
+                  timestamp: nowTime,
+                  sensor_value: `${humVal}%`,
+                  expected_range: '55 - 72%',
+                  recommendation: 'Inspect hive moisture conditions and increase ventilation.',
+                  resolved: 0
+                });
+                alertsModified = true;
+              }
             }
           });
+
+          if (alertsModified) {
+            saveStoredAlerts(allStoredAlerts);
+          }
         }
       }
     } catch (sErr) {
