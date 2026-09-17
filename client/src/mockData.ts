@@ -167,9 +167,6 @@ export function updateStoredBatchStatus(id: string, status: Batch['status'], eve
 export function getStoredAlerts(): HiveAlert[] {
   return getStorageItem<HiveAlert[]>('HC_STORE_ALERTS', MOCK_ALERTS);
 }
-export function saveStoredAlerts(alerts: HiveAlert[]): void {
-  setStorageItem('HC_STORE_ALERTS', alerts);
-}
 export function resolveStoredAlert(id: number): void {
   const alerts = getStoredAlerts();
   const alert = alerts.find(a => a.id === id);

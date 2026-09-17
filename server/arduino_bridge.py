@@ -98,28 +98,14 @@ def main():
                         "weight": wt,
                         "battery": 96.0
                     }
-                    # 1. Update local backend (if running)
                     try:
-                        requests.post(SERVER_URL, json=payload, timeout=2)
-                    except Exception:
-                        pass
-
-                    # 2. Direct live update to Supabase Cloud (instantly updates Vercel!)
-                    try:
-                        supa_url = f"https://ypywpedlduwpyzzrxova.supabase.co/rest/v1/beehives?hive_id=eq.{DEFAULT_HIVE_ID}"
-                        supa_headers = {
-                            "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlweXdwZWRsZHV3cHl6enJ4b3ZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTkwMzYsImV4cCI6MjEwNTEzNTAzNn0.4xGD8sPjzM39psPDOMW0om1fVK_J3slBquNjgmmz_TI",
-                            "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlweXdwZWRsZHV3cHl6enJ4b3ZhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODk1NTkwMzYsImV4cCI6MjEwNTEzNTAzNn0.4xGD8sPjzM39psPDOMW0om1fVK_J3slBquNjgmmz_TI",
-                            "Content-Type": "application/json",
-                            "Prefer": "return=minimal"
-                        }
-                        s_res = requests.patch(supa_url, json={"temperature_c": temp, "humidity_pct": hum, "weight_kg": wt}, headers=supa_headers, timeout=3)
-                        if s_res.status_code in [200, 204]:
-                            print(f"  --> [LIVE VERCEL & SUPABASE SYNC] Temp: {temp} C | Hum: {hum} % | Status: 200 OK")
+                        res = requests.post(SERVER_URL, json=payload, timeout=3)
+                        if res.status_code == 200:
+                            print(f"  --> [SYNCED TO WEB & SUPABASE] Temp: {temp} C | Hum: {hum} % | Weight: {wt} kg | Status: 200 OK")
                         else:
-                            print(f"  [WARN] Supabase cloud responded with: {s_res.status_code}")
-                    except Exception as s_err:
-                        print(f"  [WARN] Cloud sync notice: {s_err}")
+                            print(f"  [WARN] Server responded with status: {res.status_code}")
+                    except Exception as req_err:
+                        print(f"  [ERROR] Failed to post to server: {req_err}")
                 else:
                     print(f"  [INFO] Raw received: {raw_line}")
             time.sleep(0.1)

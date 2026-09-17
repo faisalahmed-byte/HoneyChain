@@ -364,108 +364,103 @@ export const SmartBeekeepingView: React.FC<SmartBeekeepingViewProps> = ({ active
       </div>
 
       {/* Individual Hive Detail Modal */}
-      {selectedHive && (() => {
-        const liveModalHive = hives.find(h => h.hive_id === selectedHive.hive_id) || selectedHive;
-        return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-3xl max-w-2xl w-full p-6 border border-slate-200 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div className="flex items-center space-x-3">
-                  <span className="font-mono font-black text-2xl text-amber-900 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
-                    {liveModalHive.hive_id}
-                  </span>
-                  <div>
-                    <h3 className="font-extrabold text-lg text-slate-900">{liveModalHive.apiary_name} Details</h3>
-                    <p className="text-xs text-slate-500">📍 {liveModalHive.location} • Status: <strong className="text-emerald-700">● Online</strong></p>
-                  </div>
+      {selectedHive && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 border border-slate-200 shadow-2xl space-y-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div className="flex items-center space-x-3">
+                <span className="font-mono font-black text-2xl text-amber-900 bg-amber-50 border border-amber-200 px-3 py-1 rounded-xl">
+                  {selectedHive.hive_id}
+                </span>
+                <div>
+                  <h3 className="font-extrabold text-lg text-slate-900">{selectedHive.apiary_name} Details</h3>
+                  <p className="text-xs text-slate-500">📍 {selectedHive.location} • Status: <strong className="text-emerald-700">● Online</strong></p>
                 </div>
-                <button
-                  onClick={() => setSelectedHive(null)}
-                  className="p-2 hover:bg-slate-100 rounded-xl text-slate-400"
-                >
-                  <X className="h-5 w-5" />
-                </button>
+              </div>
+              <button
+                onClick={() => setSelectedHive(null)}
+                className="p-2 hover:bg-slate-100 rounded-xl text-slate-400"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {/* AI Insights Diagnostic Card */}
+            <div className="bg-slate-900 text-white p-5 rounded-2xl space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-amber-400 font-extrabold text-sm flex items-center space-x-2">
+                  <Sparkles className="h-4 w-4" />
+                  <span>AI-ASSISTED HIVE ANALYSIS</span>
+                </span>
+                {getReadinessBadge(selectedHive.ai?.harvestReadiness)}
               </div>
 
-              {/* AI Insights Diagnostic Card */}
-              <div className="bg-slate-900 text-white p-5 rounded-2xl space-y-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-2">
-                    <Sparkles className="h-4 w-4 text-amber-400" />
-                    <h4 className="font-extrabold text-sm text-slate-100">DIAGNOSTIC AI INSIGHT</h4>
-                  </div>
-                  <span className="text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded font-mono uppercase">
-                    {liveModalHive.ai?.label}
-                  </span>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center font-mono">
+                <div className="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Colony Health</span>
+                  <span className="text-lg font-black text-emerald-400">{selectedHive.ai?.colonyHealth}%</span>
                 </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center font-mono">
-                  <div className="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Colony Health</span>
-                    <span className="text-lg font-black text-emerald-400">{liveModalHive.ai?.colonyHealth}%</span>
-                  </div>
-                  <div className="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Stress Risk</span>
-                    <span className="text-lg font-black text-red-400">{liveModalHive.ai?.stressRisk}%</span>
-                  </div>
-                  <div className="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Yield Est.</span>
-                    <span className="text-lg font-black text-amber-400">{liveModalHive.ai?.harvestPrediction.expectedYieldKg} kg</span>
-                  </div>
-                  <div className="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Confidence</span>
-                    <span className="text-lg font-black text-blue-400">{liveModalHive.ai?.harvestPrediction.confidencePct}%</span>
-                  </div>
+                <div className="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Stress Risk</span>
+                  <span className="text-lg font-black text-red-400">{selectedHive.ai?.stressRisk}%</span>
                 </div>
-
-                <p className="text-xs text-slate-300 leading-relaxed font-medium bg-slate-800/80 p-3 rounded-xl border border-slate-700">
-                  💡 {liveModalHive.ai?.recommendation}
-                </p>
-              </div>
-
-              {/* Complete Hive Telemetry Parameters */}
-              <div className="space-y-3">
-                <h4 className="font-extrabold text-sm text-slate-900">Current Sensor Telemetry</h4>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs font-mono">
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Internal Temperature</span>
-                    <span className="font-extrabold text-slate-900 text-sm">{liveModalHive.temperature_c}°C</span>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Relative Humidity</span>
-                    <span className="font-extrabold text-slate-900 text-sm">{liveModalHive.humidity_pct}%</span>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Total Scale Weight</span>
-                    <span className="font-extrabold text-slate-900 text-sm">{liveModalHive.weight_kg} kg</span>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Colony Strength</span>
-                    <span className="font-extrabold text-emerald-700 text-sm font-sans">{liveModalHive.colony_strength}</span>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Queen Status</span>
-                    <span className="font-extrabold text-slate-900 text-sm font-sans">{liveModalHive.queen_status}</span>
-                  </div>
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
-                    <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Pest Risk Metric</span>
-                    <span className="font-extrabold text-amber-800 text-sm font-sans">{liveModalHive.pest_risk}</span>
-                  </div>
+                <div className="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Yield Est.</span>
+                  <span className="text-lg font-black text-amber-400">{selectedHive.ai?.harvestPrediction.expectedYieldKg} kg</span>
+                </div>
+                <div className="bg-slate-800 p-2.5 rounded-xl border border-slate-700">
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Confidence</span>
+                  <span className="text-lg font-black text-blue-400">{selectedHive.ai?.harvestPrediction.confidencePct}%</span>
                 </div>
               </div>
 
-              <div className="pt-2">
-                <button
-                  onClick={() => setSelectedHive(null)}
-                  className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-extrabold text-xs transition-colors"
-                >
-                  CLOSE HIVE DETAILS
-                </button>
+              <p className="text-xs text-slate-300 leading-relaxed font-medium bg-slate-800/80 p-3 rounded-xl border border-slate-700">
+                💡 {selectedHive.ai?.recommendation}
+              </p>
+            </div>
+
+            {/* Complete Hive Telemetry Parameters */}
+            <div className="space-y-3">
+              <h4 className="font-extrabold text-sm text-slate-900">Current Sensor Telemetry</h4>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs font-mono">
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Internal Temperature</span>
+                  <span className="font-extrabold text-slate-900 text-sm">{selectedHive.temperature_c}°C</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Relative Humidity</span>
+                  <span className="font-extrabold text-slate-900 text-sm">{selectedHive.humidity_pct}%</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Total Scale Weight</span>
+                  <span className="font-extrabold text-slate-900 text-sm">{selectedHive.weight_kg} kg</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Colony Strength</span>
+                  <span className="font-extrabold text-emerald-700 text-sm font-sans">{selectedHive.colony_strength}</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Queen Status</span>
+                  <span className="font-extrabold text-slate-900 text-sm font-sans">{selectedHive.queen_status}</span>
+                </div>
+                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
+                  <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Pest Risk Metric</span>
+                  <span className="font-extrabold text-amber-800 text-sm font-sans">{selectedHive.pest_risk}</span>
+                </div>
               </div>
             </div>
+
+            <div className="pt-2">
+              <button
+                onClick={() => setSelectedHive(null)}
+                className="w-full py-3 bg-slate-900 hover:bg-slate-800 text-white rounded-xl font-extrabold text-xs transition-colors"
+              >
+                CLOSE HIVE DETAILS
+              </button>
+            </div>
           </div>
-        );
-      })()}
+        </div>
+      )}
     </div>
   );
 };
