@@ -111,8 +111,8 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ onNavigate: _onNavigate,
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex items-center space-x-2 border-b border-slate-200 pb-3">
-        <Filter className="h-4 w-4 text-slate-400 mr-1" />
+      <div className="flex items-center space-x-2 border-b border-slate-200 pb-3 overflow-x-auto">
+        <Filter className="h-4 w-4 text-slate-400 mr-1 shrink-0" />
         {[
           { id: 'all', label: 'ALL ALERTS' },
           { id: 'critical', label: 'CRITICAL ONLY' },
@@ -122,7 +122,7 @@ export const AlertsView: React.FC<AlertsViewProps> = ({ onNavigate: _onNavigate,
           <button
             key={t.id}
             onClick={() => setFilter(t.id as any)}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all shrink-0 ${
               filter === t.id
                 ? 'bg-amber-500 text-slate-950 shadow-2xs'
                 : 'bg-white border border-slate-200 text-slate-700 hover:bg-slate-50'

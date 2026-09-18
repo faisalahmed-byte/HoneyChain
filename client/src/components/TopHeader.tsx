@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { UserRole, Batch, HiveAlert, BeekeeperProfile } from '../types';
-import { Search, Bell, ShieldCheck, ChevronRight, Package, Cpu, AlertTriangle, X } from 'lucide-react';
+import { Search, Bell, ShieldCheck, ChevronRight, Package, Cpu, AlertTriangle, X, Menu } from 'lucide-react';
 import { apiFetch } from '../apiFetch';
 
 interface TopHeaderProps {
@@ -13,6 +13,7 @@ interface TopHeaderProps {
   beekeepers?: BeekeeperProfile[];
   onSelectBeekeeper?: (id: string) => void;
   onOpenLoginModal?: () => void;
+  onToggleMobileMenu?: () => void;
 }
 
 export const INITIAL_BEEKEEPERS: BeekeeperProfile[] = [
@@ -103,8 +104,10 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   activeBeekeeper,
   beekeepers,
   onSelectBeekeeper,
-  onOpenLoginModal
+  onOpenLoginModal,
+  onToggleMobileMenu
 }) => {
+  const [mobileSearchOpen, setMobileSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<{
     batches: Batch[];
@@ -240,11 +243,23 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   };
 
   return (
-    <header className="h-16 bg-white border-b border-slate-200/80 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-40 shadow-2xs">
+    <header className="h-14 sm:h-16 bg-white border-b border-slate-200/80 px-3 sm:px-6 flex items-center justify-between sticky top-0 z-40 shadow-2xs">
       {/* Left Title & Breadcrumbs */}
-      <div className="flex items-center space-x-3">
-        <div>
-          <div className="flex items-center space-x-2 text-[11px] font-semibold text-slate-400">
+      <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
+        {/* Mobile Hamburger Menu Button */}
+        {onToggleMobileMenu && (
+          <button
+            onClick={onToggleMobileMenu}
+            className="p-1.5 sm:p-2 -ml-1 text-slate-700 hover:text-slate-950 hover:bg-slate-100 rounded-xl lg:hidden flex items-center justify-center transition-colors shrink-0"
+            title="Open Navigation Menu"
+            aria-label="Open Navigation Menu"
+          >
+            <Menu className="h-5 w-5" />
+          </button>
+        )}
+
+        <div className="min-w-0">
+          <div className="hidden sm:flex items-center space-x-2 text-[11px] font-semibold text-slate-400">
             {breadcrumb.map((crumb, index) => (
               <React.Fragment key={index}>
                 {index > 0 && <ChevronRight className="h-3 w-3 text-slate-300" />}
@@ -254,13 +269,14 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               </React.Fragment>
             ))}
           </div>
-          <div className="flex items-center space-x-2.5 mt-0.5">
-            <h1 className="text-base font-extrabold text-slate-900 tracking-tight leading-none">
+          <div className="flex items-center space-x-2 mt-0.5 min-w-0">
+            <h1 className="text-sm sm:text-base font-extrabold text-slate-900 tracking-tight leading-none truncate max-w-[130px] sm:max-w-xs md:max-w-none">
               {title}
             </h1>
             {roleBadgeMap[userRole] && (
-              <span className={`text-[10px] font-black px-2 py-0.5 rounded-md border uppercase ${roleBadgeMap[userRole].style}`}>
-                {roleBadgeMap[userRole].label}
+              <span className={`text-[9px] sm:text-[10px] font-black px-1.5 sm:px-2 py-0.5 rounded-md border uppercase shrink-0 ${roleBadgeMap[userRole].style}`}>
+                <span className="hidden md:inline">{roleBadgeMap[userRole].label}</span>
+                <span className="md:hidden">{userRole.toUpperCase()}</span>
               </span>
             )}
           </div>
@@ -268,9 +284,19 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       </div>
 
       {/* Right Search, Alerts, Profile */}
-      <div className="flex items-center space-x-3">
+      <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
         
-        {/* Live Search Input & Dropdown Container */}
+        {/* Mobile Search Icon Button */}
+        <button
+          onClick={() => setMobileSearchOpen(!mobileSearchOpen)}
+          className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors md:hidden shrink-0"
+          title="Search"
+          aria-label="Search"
+        >
+          <Search className="h-4 w-4" />
+        </button>
+
+        {/* Live Search Input & Dropdown Container (Desktop) */}
         <div ref={searchRef} className="relative hidden md:block">
           <div className="relative">
             <Search className="h-3.5 w-3.5 absolute left-3 top-2.5 text-slate-400" />
@@ -282,7 +308,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
               onFocus={() => {
                 if (searchQuery.trim()) setSearchOpen(true);
               }}
-              className="w-56 lg:w-64 pl-8 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:bg-white transition-all placeholder:text-slate-400"
+              className="w-48 lg:w-64 pl-8 pr-8 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:bg-white transition-all placeholder:text-slate-400"
             />
             {searchQuery && (
               <button
@@ -400,11 +426,12 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {onOpenLoginModal && (
           <button
             onClick={onOpenLoginModal}
-            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-xs transition-all flex items-center space-x-1.5 cursor-pointer"
+            className="px-2 sm:px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-extrabold rounded-xl shadow-xs transition-all flex items-center space-x-1 sm:space-x-1.5 cursor-pointer shrink-0"
             title="Open Login & Session Auth Portal"
           >
             <ShieldCheck className="h-3.5 w-3.5 text-slate-950" />
-            <span>🔒 Portal Login</span>
+            <span className="hidden sm:inline">🔒 Portal Login</span>
+            <span className="sm:hidden">Login</span>
           </button>
         )}
 
@@ -487,6 +514,122 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           )}
         </div>
       </div>
+
+      {/* Mobile Search Overlay Input & Results Drawer */}
+      {mobileSearchOpen && (
+        <div className="md:hidden absolute top-14 left-0 right-0 bg-white border-b border-slate-200 p-3 shadow-xl z-50 animate-fadeIn space-y-2">
+          <div className="relative">
+            <Search className="h-4 w-4 absolute left-3 top-3 text-slate-400" />
+            <input
+              type="text"
+              autoFocus
+              placeholder="Search Batch ID, Hive or Alert..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full pl-9 pr-9 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs font-semibold text-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500/50 focus:bg-white"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery('')}
+                className="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 p-0.5"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
+
+          {searchQuery.trim() && (
+            <div className="max-h-72 overflow-y-auto space-y-2 pt-1 divide-y divide-slate-100">
+              {/* Batches Section */}
+              {searchResults.batches.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  <div className="text-[10px] font-bold text-amber-900 bg-amber-50 px-2 py-0.5 rounded font-mono">
+                    HONEY BATCHES
+                  </div>
+                  {searchResults.batches.map(b => (
+                    <div
+                      key={b.id}
+                      onClick={() => {
+                        setMobileSearchOpen(false);
+                        handleSelectResult('batch', b.id);
+                      }}
+                      className="p-2 hover:bg-amber-50/60 rounded-xl cursor-pointer text-xs flex items-center justify-between"
+                    >
+                      <div>
+                        <span className="font-mono font-bold text-amber-900 block">{b.id}</span>
+                        <span className="text-slate-500 text-[11px]">{b.floral_source} • {b.beekeeper_name}</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
+                        {b.status}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Hives Section */}
+              {searchResults.hives.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  <div className="text-[10px] font-bold text-blue-900 bg-blue-50 px-2 py-0.5 rounded font-mono">
+                    APIARY HIVES
+                  </div>
+                  {searchResults.hives.map(h => (
+                    <div
+                      key={h.hive_id}
+                      onClick={() => {
+                        setMobileSearchOpen(false);
+                        handleSelectResult('hive', h.hive_id);
+                      }}
+                      className="p-2 hover:bg-blue-50/60 rounded-xl cursor-pointer text-xs flex items-center justify-between"
+                    >
+                      <div>
+                        <span className="font-mono font-bold text-slate-900 block">{h.hive_id}</span>
+                        <span className="text-slate-500 text-[11px]">Brood Temp: {h.temperature_c}°C</span>
+                      </div>
+                      <span className="text-[10px] font-bold text-slate-600 font-mono">
+                        {h.pest_risk}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Alerts Section */}
+              {searchResults.alerts.length > 0 && (
+                <div className="space-y-1 pt-1">
+                  <div className="text-[10px] font-bold text-red-900 bg-red-50 px-2 py-0.5 rounded font-mono">
+                    ALERTS
+                  </div>
+                  {searchResults.alerts.map(a => (
+                    <div
+                      key={a.id}
+                      onClick={() => {
+                        setMobileSearchOpen(false);
+                        handleSelectResult('alert', String(a.id));
+                      }}
+                      className="p-2 hover:bg-red-50/60 rounded-xl cursor-pointer text-xs flex items-center justify-between"
+                    >
+                      <div>
+                        <span className="font-bold text-slate-900 block">{a.title} ({a.hive_id})</span>
+                        <span className="text-slate-500 text-[11px]">{a.timestamp}</span>
+                      </div>
+                      <span className="text-[10px] font-bold uppercase px-1.5 py-0.5 rounded bg-red-100 text-red-800">
+                        {a.severity}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {searchResults.batches.length === 0 && searchResults.hives.length === 0 && searchResults.alerts.length === 0 && (
+                <div className="p-3 text-center text-xs text-slate-400 font-mono">
+                  No matching Batch, Hive, or Alert found for "{searchQuery}"
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </header>
   );
 };

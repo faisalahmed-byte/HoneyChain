@@ -113,8 +113,26 @@ def main():
             print("\nBridge stopped by user.")
             ser.close()
             break
+        except serial.SerialException as se:
+            print(f"[DISCONNECTED] Arduino disconnected ({se}). Waiting for reconnect...")
+            try:
+                ser.close()
+            except Exception:
+                pass
+            time.sleep(2)
+            while True:
+                try:
+                    detected_port = sys.argv[1] if len(sys.argv) > 1 else get_com_port()
+                    if detected_port:
+                        ser = serial.Serial(detected_port, baud, timeout=2)
+                        time.sleep(2)
+                        print(f"[OK] Reconnected to {detected_port} successfully!\n")
+                        break
+                except Exception:
+                    pass
+                time.sleep(2)
         except Exception as e:
-            print(f"Error in loop: {e}")
+            print(f"Notice: {e}")
             time.sleep(1)
 
 if __name__ == "__main__":

@@ -22,12 +22,14 @@ import { AlertsView } from './components/AlertsView';
 import { QrManagementView } from './components/QrManagementView';
 import { DatabaseOutputView } from './components/DatabaseOutputView';
 import { LoginModal } from './components/LoginModal';
+import { LayoutGrid, Cpu, Package, QrCode, Menu } from 'lucide-react';
 
 export const App: React.FC = () => {
   const [currentTab, setCurrentTab] = useState<string>('dashboard');
   const [userRole, setUserRole] = useState<UserRole>('Beekeeper');
   const [selectedBatchId, setSelectedBatchId] = useState<string>('HC-TG-2026-001');
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleLoginSuccess = (role: UserRole, user: { id: string; name: string }, _loginType: 'ADMIN' | 'USER') => {
     setUserRole(role);
@@ -145,9 +147,9 @@ export const App: React.FC = () => {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-slate-50 flex font-sans text-slate-800 antialiased selection:bg-amber-200 selection:text-amber-900">
+    <div className="h-[100dvh] min-h-[100dvh] w-full overflow-hidden bg-slate-50 flex font-sans text-slate-800 antialiased selection:bg-amber-200 selection:text-amber-900">
       
-      {/* Left Sidebar */}
+      {/* Left Sidebar (Desktop side-by-side & Mobile Off-canvas Drawer) */}
       <Sidebar
         currentTab={currentTab}
         setCurrentTab={setCurrentTab}
@@ -158,10 +160,12 @@ export const App: React.FC = () => {
         beekeepers={beekeepers}
         onSelectBeekeeper={handleSelectBeekeeper}
         onOpenLoginModal={() => setIsLoginModalOpen(true)}
+        isMobileOpen={isMobileMenuOpen}
+        onCloseMobile={() => setIsMobileMenuOpen(false)}
       />
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 h-full overflow-hidden relative">
         
         {/* Top Header Bar */}
         <TopHeader
@@ -173,6 +177,7 @@ export const App: React.FC = () => {
           beekeepers={beekeepers}
           onSelectBeekeeper={handleSelectBeekeeper}
           onOpenLoginModal={() => setIsLoginModalOpen(true)}
+          onToggleMobileMenu={() => setIsMobileMenuOpen(prev => !prev)}
           onSearchSelect={(type, id) => {
             if (type === 'batch') {
               setSelectedBatchId(id);
@@ -186,7 +191,7 @@ export const App: React.FC = () => {
         />
 
         {/* Dynamic Route Content */}
-        <main className={`flex-1 overflow-y-auto ${currentTab === 'verify' ? 'p-0' : 'p-4 sm:p-6 lg:p-8'}`}>
+        <main className={`flex-1 overflow-y-auto ${currentTab === 'verify' ? 'p-0' : 'p-3 sm:p-6 lg:p-8'} pb-20 lg:pb-6`}>
           
           {currentTab === 'verify' && (
             <ConsumerVerificationView
@@ -297,15 +302,83 @@ export const App: React.FC = () => {
           )}
         </main>
 
-        {/* Global SaaS Footer */}
-        <footer className="bg-white border-t border-slate-200/80 py-3 px-6 text-xs text-slate-500 flex flex-col sm:flex-row items-center justify-between gap-2 shrink-0">
+        {/* Global SaaS Footer (Desktop) */}
+        <footer className="bg-white border-t border-slate-200/80 py-3 px-6 text-xs text-slate-500 hidden lg:flex items-center justify-between gap-2 shrink-0">
           <div className="flex items-center space-x-2">
             <span className="font-extrabold text-amber-900 font-mono">HONEY CHAIN SaaS</span>
             <span>•</span>
             <span>Trusted honey, traceable from hive to home</span>
           </div>
+          <div className="text-[11px] text-slate-400 font-mono">
+            Cryptographic SHA-256 Ledger
+          </div>
         </footer>
 
+        {/* Mobile Bottom Navigation Bar (Smartphones & Tablets < lg) */}
+        <nav
+          className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#070c18]/95 backdrop-blur-md border-t border-slate-800/80 px-2 py-1 flex items-center justify-around select-none shadow-[0_-4px_20px_rgba(0,0,0,0.35)]"
+          aria-label="Mobile Navigation"
+        >
+          <button
+            onClick={() => setCurrentTab('dashboard')}
+            className={`flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl transition-all ${
+              currentTab === 'dashboard'
+                ? 'text-amber-400 font-black'
+                : 'text-slate-400 hover:text-slate-200 font-medium'
+            }`}
+          >
+            <LayoutGrid className="h-5 w-5" />
+            <span className="text-[10px] mt-0.5 tracking-tight">Overview</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('beekeeping')}
+            className={`flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl transition-all ${
+              currentTab === 'beekeeping'
+                ? 'text-amber-400 font-black'
+                : 'text-slate-400 hover:text-slate-200 font-medium'
+            }`}
+          >
+            <Cpu className="h-5 w-5" />
+            <span className="text-[10px] mt-0.5 tracking-tight">IoT Hives</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('batches')}
+            className={`flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl transition-all ${
+              currentTab === 'batches'
+                ? 'text-amber-400 font-black'
+                : 'text-slate-400 hover:text-slate-200 font-medium'
+            }`}
+          >
+            <Package className="h-5 w-5" />
+            <span className="text-[10px] mt-0.5 tracking-tight">Batches</span>
+          </button>
+
+          <button
+            onClick={() => setCurrentTab('verify')}
+            className={`flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl transition-all ${
+              currentTab === 'verify'
+                ? 'text-amber-400 font-black'
+                : 'text-slate-400 hover:text-slate-200 font-medium'
+            }`}
+          >
+            <QrCode className="h-5 w-5" />
+            <span className="text-[10px] mt-0.5 tracking-tight">Passport</span>
+          </button>
+
+          <button
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="flex flex-col items-center justify-center flex-1 py-1.5 px-1 rounded-xl text-slate-400 hover:text-amber-400 transition-all font-medium relative"
+            title="All Modules & Role Scope"
+          >
+            <Menu className="h-5 w-5" />
+            <span className="text-[10px] mt-0.5 tracking-tight">Menu</span>
+            {activeAlertsCount > 0 && (
+              <span className="absolute top-1 right-3 h-2 w-2 rounded-full bg-red-500 ring-2 ring-[#070c18]" />
+            )}
+          </button>
+        </nav>
       </div>
 
       {/* Global Session & Auth Login Modal */}

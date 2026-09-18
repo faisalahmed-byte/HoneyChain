@@ -156,8 +156,8 @@ export const BatchCreateView: React.FC<BatchCreateViewProps> = ({ onSuccess, onN
           </div>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="bg-white p-8 rounded-3xl border border-slate-200/80 shadow-2xs space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form onSubmit={handleSubmit} className="bg-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-200/80 shadow-2xs space-y-5 sm:space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1.5">

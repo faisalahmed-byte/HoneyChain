@@ -176,9 +176,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
   const banner = renderRoleBanner();
 
   return (
-    <div className="space-y-8 max-w-7xl mx-auto">
+    <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto">
       {/* 1. Welcome & Greeting Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 text-white p-6 sm:p-8 rounded-3xl border border-slate-800 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-6">
+      <div className="bg-gradient-to-r from-slate-900 via-slate-850 to-slate-900 text-white p-4 sm:p-8 rounded-2xl sm:rounded-3xl border border-slate-800 shadow-md flex flex-col md:flex-row md:items-center justify-between gap-5 sm:gap-6">
         <div className="space-y-1.5">
           <div className="flex items-center space-x-2">
             <span className="bg-amber-500/20 text-amber-300 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full border border-amber-500/30 uppercase tracking-wider font-mono">
@@ -186,7 +186,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
             </span>
             <span className="text-xs text-slate-400 font-mono">• {activeBeekeeper ? activeBeekeeper.location : 'Nizamabad Hub'}</span>
           </div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
+          <h2 className="text-xl sm:text-3xl font-extrabold tracking-tight text-white">
             {banner.title}
           </h2>
           <p className="text-xs text-slate-300 font-medium max-w-3xl">
@@ -194,7 +194,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2.5 sm:gap-3">
           {banner.actions}
 
           <button
@@ -208,7 +208,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
       </div>
 
       {/* 2. Compact KPI Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
         <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-2xs space-y-2">
           <div className="flex items-center justify-between">
             <span className="text-xs font-extrabold text-slate-500 uppercase tracking-wider">Active Hives</span>
