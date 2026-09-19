@@ -282,10 +282,13 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
   // Live Cloud Sync on Vercel: Query Supabase for real-time IoT telemetry from physical hardware
   if (/^\/api\/hives/.test(pathname) || /^\/api\/dashboard/.test(pathname)) {
     try {
-      const supaRes = await fetch(`${SUPABASE_REST_URL}/beehives?select=*`, {
+      const supaRes = await fetch(`${SUPABASE_REST_URL}/beehives?select=*&_t=${Date.now()}`, {
+        cache: 'no-store',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
-          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
         }
       });
       if (supaRes.ok) {
@@ -293,29 +296,41 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
         if (Array.isArray(liveHives)) {
           const nowTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
 
-          liveHives.forEach((lh: any) => {
-            const targets = [lh.hive_id];
-            if (lh.hive_id === 'HIVE-001') targets.push('HIVE-007');
-            if (lh.hive_id === 'HIVE-007') targets.push('HIVE-001');
+          const primaryLive = liveHives.find((h: any) => h.hive_id === 'HIVE-001') || 
+                              liveHives.find((h: any) => h.hive_id === 'HIVE-007') || 
+                              liveHives[0];
+          const liveTemp = primaryLive && primaryLive.temperature_c !== undefined ? Number(primaryLive.temperature_c) : null;
+          const liveHum = primaryLive && primaryLive.humidity_pct !== undefined ? Number(primaryLive.humidity_pct) : null;
+          const liveWt = primaryLive && primaryLive.weight_kg !== undefined ? Number(primaryLive.weight_kg) : 19.4;
 
-            targets.forEach(targetId => {
-              const existing = MOCK_HIVES.find(h => h.hive_id === targetId);
-              if (existing) {
-                if (lh.temperature_c !== undefined && lh.temperature_c !== null) {
-                  existing.temperature_c = Number(lh.temperature_c);
-                }
-                if (lh.humidity_pct !== undefined && lh.humidity_pct !== null) {
-                  existing.humidity_pct = Number(lh.humidity_pct);
-                }
-                if (lh.weight_kg !== undefined && lh.weight_kg !== null) {
-                  existing.weight_kg = Number(lh.weight_kg);
-                }
-                existing.updated_at = lh.updated_at || nowTime;
+          MOCK_HIVES.forEach((existing) => {
+            const match = liveHives.find((lh: any) => lh.hive_id === existing.hive_id);
+            const targetTemp = match && match.temperature_c !== undefined && match.temperature_c !== null
+              ? Number(match.temperature_c)
+              : liveTemp;
+            const targetHum = match && match.humidity_pct !== undefined && match.humidity_pct !== null
+              ? Number(match.humidity_pct)
+              : liveHum;
+            const targetWt = match && match.weight_kg !== undefined && match.weight_kg !== null
+              ? Number(match.weight_kg)
+              : liveWt;
 
-                // Dynamically recompute AI metrics based on live sensor telemetry
-                if (existing.ai) {
-                  const t = existing.temperature_c;
-                  const h = existing.humidity_pct;
+            if (targetTemp !== null && !isNaN(targetTemp)) {
+              existing.temperature_c = Math.round(targetTemp * 10) / 10;
+            }
+            if (targetHum !== null && !isNaN(targetHum)) {
+              existing.humidity_pct = Math.round(targetHum);
+            }
+            if (targetWt !== null && !isNaN(targetWt)) {
+              existing.weight_kg = Math.round(targetWt * 10) / 10;
+            }
+            existing.updated_at = nowTime;
+
+            // Dynamically recompute AI metrics based on live sensor telemetry
+            if (existing.ai) {
+              const t = existing.temperature_c;
+              const h = existing.humidity_pct;
+
 
                 let health = 94;
                 let stress = 6;
@@ -361,9 +376,7 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
                   existing.ai.label = 'Healthy — Live Telemetry Active';
                 }
               }
-            }
           });
-        });
         }
       }
     } catch (sErr) {

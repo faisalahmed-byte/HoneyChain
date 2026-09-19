@@ -78,42 +78,36 @@ def parse_sensor_data(line):
 
     return None, None, None
 
-def sync_to_cloud_supabase(hive_ids, temp, hum, wt):
-    """Directly updates Supabase Cloud so Vercel displays live data instantly for both target hives"""
-    success = False
-    for hive_id in hive_ids:
-        try:
-            url = f"{SUPABASE_URL}/rest/v1/beehives?hive_id=eq.{hive_id}"
-            payload = {
-                "temperature_c": temp,
-                "humidity_pct": hum,
-                "weight_kg": wt
-            }
-            res = requests.patch(url, headers=SUPABASE_HEADERS, json=payload, timeout=4)
-            if res.status_code in [200, 204]:
-                success = True
-        except Exception:
-            pass
-    return success
+def sync_to_cloud_supabase(temp, hum, wt):
+    """Directly updates Supabase Cloud so Vercel displays live data instantly for all hives matching LCD"""
+    try:
+        url = f"{SUPABASE_URL}/rest/v1/beehives?hive_id=neq.XYZ"
+        payload = {
+            "temperature_c": round(temp, 1),
+            "humidity_pct": int(round(hum)),
+            "weight_kg": round(wt, 1)
+        }
+        res = requests.patch(url, headers=SUPABASE_HEADERS, json=payload, timeout=3)
+        return res.status_code in [200, 204]
+    except Exception:
+        return False
 
-def sync_to_host_backend(hive_ids, temp, hum, wt):
+def sync_to_host_backend(temp, hum, wt):
     """Sends telemetry to local Node backend for local SQLite & UI"""
-    success = False
-    for hive_id in hive_ids:
-        try:
-            payload = {
-                "hiveId": hive_id,
-                "temperature": temp,
-                "humidity": hum,
-                "weight": wt,
-                "battery": 95.0
-            }
-            res = requests.post(HOST_SERVER_URL, json=payload, timeout=2)
-            if res.status_code == 200:
-                success = True
-        except Exception:
-            pass
-    return success
+    try:
+        payload = {
+            "hiveId": "HIVE-001",
+            "syncAll": True,
+            "temperature": round(temp, 1),
+            "humidity": int(round(hum)),
+            "weight": round(wt, 1),
+            "battery": 95.0
+        }
+        res = requests.post(HOST_SERVER_URL, json=payload, timeout=2)
+        return res.status_code == 200
+    except Exception:
+        return False
+
 
 def main():
     port = sys.argv[1] if len(sys.argv) > 1 else get_com_port()
@@ -168,15 +162,15 @@ def main():
                     timestamp = time.strftime("%H:%M:%S")
 
                     # 1. Sync to Supabase Cloud (for Vercel Live Display)
-                    cloud_ok = sync_to_cloud_supabase(TARGET_HIVE_IDS, temp, hum, wt)
+                    cloud_ok = sync_to_cloud_supabase(temp, hum, wt)
 
                     # 2. Sync to Host Local Server (for localhost:5000 / localhost:5173)
-                    host_ok = sync_to_host_backend(TARGET_HIVE_IDS, temp, hum, wt)
+                    host_ok = sync_to_host_backend(temp, hum, wt)
 
                     cloud_status = "VERCEL: OK" if cloud_ok else "VERCEL: Pending"
                     host_status = "HOST: OK" if host_ok else "HOST: Offline"
 
-                    print(f"[{timestamp}] #{sample_count:03d} | Temp: {temp:4.1f} C | Hum: {hum:2.0f}% | Wt: {wt:4.1f}kg  -->  [{cloud_status}] | [{host_status}]", flush=True)
+                    print(f"[{timestamp}] #{sample_count:03d} | Temp: {temp:4.1f} C | Hum: {int(round(hum)):2d}% | Wt: {wt:4.1f}kg  -->  [{cloud_status}] | [{host_status}]", flush=True)
                 else:
                     if any(header_word in raw_line for header_word in ["HONEY CHAIN", "Smart Hive", "Initializing", "===="]):
                         print(f"[Arduino Boot]: {raw_line}", flush=True)

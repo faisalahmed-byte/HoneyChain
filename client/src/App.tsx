@@ -105,7 +105,9 @@ export const App: React.FC = () => {
   const [dashboardLoading, setDashboardLoading] = useState(false);
 
   useEffect(() => {
-    fetchDashboard();
+    fetchDashboard(true);
+    const interval = setInterval(() => fetchDashboard(false), 2000);
+    return () => clearInterval(interval);
   }, [currentTab, activeBeekeeperId, userRole]);
 
   // Handle URL path e.g. /verify/HC-TG-2026-001
@@ -121,8 +123,8 @@ export const App: React.FC = () => {
     }
   }, []);
 
-  const fetchDashboard = async () => {
-    setDashboardLoading(true);
+  const fetchDashboard = async (isInitial = false) => {
+    if (isInitial) setDashboardLoading(true);
     try {
       const q = (userRole === 'Beekeeper' && activeBeekeeper) 
         ? `?beekeeper=${encodeURIComponent(activeBeekeeper.name)}&location=${encodeURIComponent(activeBeekeeper.location)}` 
@@ -133,7 +135,7 @@ export const App: React.FC = () => {
     } catch (e) {
       console.error('Error fetching dashboard:', e);
     } finally {
-      setDashboardLoading(false);
+      if (isInitial) setDashboardLoading(false);
     }
   };
 

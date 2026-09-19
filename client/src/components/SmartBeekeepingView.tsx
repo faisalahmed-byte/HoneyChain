@@ -288,8 +288,8 @@ export const SmartBeekeepingView: React.FC<SmartBeekeepingViewProps> = ({ active
                         <Thermometer className="h-3.5 w-3.5 text-red-500" />
                         <span>Temp</span>
                       </span>
-                      <span className={`font-extrabold ${h.temperature_c > 36 ? 'text-red-600' : 'text-slate-800'}`}>
-                        {h.temperature_c}°C
+                      <span className={`font-extrabold ${Number(h.temperature_c) > 36 ? 'text-red-600' : 'text-slate-800'}`}>
+                        {Number(h.temperature_c).toFixed(1)}°C
                       </span>
                     </div>
 
@@ -298,7 +298,7 @@ export const SmartBeekeepingView: React.FC<SmartBeekeepingViewProps> = ({ active
                         <Droplets className="h-3.5 w-3.5 text-blue-500" />
                         <span>Humidity</span>
                       </span>
-                      <span className="font-extrabold text-slate-800">{h.humidity_pct}%</span>
+                      <span className="font-extrabold text-slate-800">{Math.round(Number(h.humidity_pct))}%</span>
                     </div>
 
                     <div className="space-y-1 pt-1">
@@ -433,15 +433,15 @@ export const SmartBeekeepingView: React.FC<SmartBeekeepingViewProps> = ({ active
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs font-mono">
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Internal Temperature</span>
-                  <span className="font-extrabold text-slate-900 text-sm">{selectedHive.temperature_c}°C</span>
+                  <span className="font-extrabold text-slate-900 text-sm">{Number(selectedHive.temperature_c).toFixed(1)}°C</span>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Relative Humidity</span>
-                  <span className="font-extrabold text-slate-900 text-sm">{selectedHive.humidity_pct}%</span>
+                  <span className="font-extrabold text-slate-900 text-sm">{Math.round(Number(selectedHive.humidity_pct))}%</span>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Total Scale Weight</span>
-                  <span className="font-extrabold text-slate-900 text-sm">{selectedHive.weight_kg} kg</span>
+                  <span className="font-extrabold text-slate-900 text-sm">{Number(selectedHive.weight_kg).toFixed(1)} kg</span>
                 </div>
                 <div className="p-3 bg-slate-50 rounded-xl border border-slate-200">
                   <span className="text-[10px] text-slate-400 font-bold uppercase block font-sans">Colony Strength</span>

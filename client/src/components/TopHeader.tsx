@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { UserRole, Batch, HiveAlert, BeekeeperProfile } from '../types';
-import { Search, Bell, ShieldCheck, ChevronRight, Package, Cpu, AlertTriangle, X, Menu } from 'lucide-react';
+import { Search, Bell, ShieldCheck, ChevronRight, Package, Cpu, AlertTriangle, X, Menu, Thermometer, Droplets } from 'lucide-react';
 import { apiFetch } from '../apiFetch';
 
 interface TopHeaderProps {
@@ -116,6 +116,29 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   }>({ batches: [], hives: [], alerts: [] });
   const [searchOpen, setSearchOpen] = useState(false);
   const searchRef = useRef<HTMLDivElement>(null);
+  const [liveTelemetry, setLiveTelemetry] = useState<{ temp: number; hum: number } | null>(null);
+
+  useEffect(() => {
+    const fetchLive = () => {
+      apiFetch('/api/hives')
+        .then(res => res.json())
+        .then(d => {
+          if (d.hives && d.hives.length > 0) {
+            const h1 = d.hives.find((h: any) => h.hive_id === 'HIVE-001') || d.hives[0];
+            if (h1 && h1.temperature_c !== undefined && h1.humidity_pct !== undefined) {
+              setLiveTelemetry({
+                temp: Number(h1.temperature_c),
+                hum: Number(h1.humidity_pct)
+              });
+            }
+          }
+        })
+        .catch(() => {});
+    };
+    fetchLive();
+    const interval = setInterval(fetchLive, 2000);
+    return () => clearInterval(interval);
+  }, []);
 
   const baseProfile = USER_PROFILES[userRole] || USER_PROFILES.Beekeeper;
   const activeProfile = (userRole === 'Beekeeper' && activeBeekeeper)
@@ -286,6 +309,30 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
       {/* Right Search, Alerts, Profile */}
       <div className="flex items-center space-x-1.5 sm:space-x-3 shrink-0">
         
+        {/* Live Hardware Telemetry Pill Synced with LCD Display */}
+        {liveTelemetry && (
+          <div 
+            onClick={() => setCurrentTab('beekeeping')}
+            className="flex items-center space-x-1.5 sm:space-x-2 bg-emerald-50 hover:bg-emerald-100/90 text-emerald-950 border border-emerald-300/90 px-2 sm:px-3 py-1 rounded-xl text-xs font-mono shadow-2xs cursor-pointer transition-all shrink-0"
+            title="Physical Arduino DHT22 Hardware Sensor Synced with 16x2 LCD Display"
+          >
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+            </span>
+            <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider hidden lg:inline">LCD SYNC:</span>
+            <span className="flex items-center space-x-0.5 text-slate-900 font-black">
+              <Thermometer className="h-3 w-3 text-red-500 hidden sm:inline" />
+              <span>{liveTelemetry.temp.toFixed(1)}°C</span>
+            </span>
+            <span className="text-slate-300">|</span>
+            <span className="flex items-center space-x-0.5 text-slate-900 font-black">
+              <Droplets className="h-3 w-3 text-blue-500 hidden sm:inline" />
+              <span>{Math.round(liveTelemetry.hum)}%</span>
+            </span>
+          </div>
+        )}
+
         {/* Mobile Search Icon Button */}
         <button
           onClick={() => setMobileSearchOpen(!mobileSearchOpen)}

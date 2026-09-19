@@ -306,6 +306,42 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
               </button>
             </div>
 
+            {/* Live Hardware Telemetry Banner synced with LCD display */}
+            {hivesList.length > 0 && (
+              <div className="bg-gradient-to-r from-emerald-50 via-teal-50 to-amber-50/40 p-3.5 sm:p-4 rounded-xl border border-emerald-200/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 font-mono">
+                <div className="flex items-center space-x-3">
+                  <div className="h-9 w-9 rounded-lg bg-emerald-600 text-white flex items-center justify-center font-bold shadow-xs shrink-0">
+                    <Cpu className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <div className="flex items-center space-x-2 flex-wrap">
+                      <span className="text-xs font-black text-emerald-950 uppercase font-sans">Connected IoT Hive Node (Arduino DHT22)</span>
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[9px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse mr-1" />
+                        16x2 LCD SYNC
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-500 font-sans">Streaming live telemetry identical to physical LCD screen on COM7</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center space-x-3 shrink-0">
+                  <div className="bg-white px-3 py-1.5 rounded-lg border border-emerald-200/80 shadow-2xs text-center">
+                    <span className="text-[9px] font-bold text-slate-400 block uppercase font-sans">LCD Temp</span>
+                    <span className="text-sm font-black text-slate-900 font-mono">
+                      {Number(hivesList[0]?.temperature_c || 30.7).toFixed(1)}°C
+                    </span>
+                  </div>
+                  <div className="bg-white px-3 py-1.5 rounded-lg border border-emerald-200/80 shadow-2xs text-center">
+                    <span className="text-[9px] font-bold text-slate-400 block uppercase font-sans">LCD Humidity</span>
+                    <span className="text-sm font-black text-blue-900 font-mono">
+                      {Math.round(Number(hivesList[0]?.humidity_pct || 50))}%
+                    </span>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Hive Monitoring Table */}
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
@@ -323,9 +359,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
                 <tbody className="divide-y divide-slate-100 font-mono">
                   {hivesList.slice(0, 7).map((h) => (
                     <tr
-                      key={h.hive_id}
-                      onClick={() => onNavigate('beekeeping')}
-                      className="hover:bg-amber-50/40 cursor-pointer transition-colors"
+                       key={h.hive_id}
+                       onClick={() => onNavigate('beekeeping')}
+                       className="hover:bg-amber-50/40 cursor-pointer transition-colors"
                     >
                       <td className="py-3 px-3 font-bold text-amber-900">{h.hive_id}</td>
                       <td className="py-3 px-3">
@@ -341,11 +377,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
                           </span>
                         )}
                       </td>
-                      <td className={`py-3 px-3 text-right font-extrabold ${h.temperature_c > 36 ? 'text-red-600' : 'text-slate-800'}`}>
-                        {h.temperature_c}°C
+                      <td className={`py-3 px-3 text-right font-extrabold ${Number(h.temperature_c) > 36 ? 'text-red-600' : 'text-slate-800'}`}>
+                        {Number(h.temperature_c).toFixed(1)}°C
                       </td>
-                      <td className="py-3 px-3 text-right font-semibold text-slate-700">{h.humidity_pct}%</td>
-                      <td className="py-3 px-3 text-right font-extrabold text-amber-900">{h.weight_kg} kg</td>
+                      <td className="py-3 px-3 text-right font-semibold text-slate-700">{Math.round(Number(h.humidity_pct))}%</td>
+                      <td className="py-3 px-3 text-right font-extrabold text-amber-900">{Number(h.weight_kg).toFixed(1)} kg</td>
                       <td className="py-3 px-3 text-center">
                         <span className="px-2 py-0.5 bg-emerald-100 text-emerald-800 font-extrabold rounded-md text-[10px]">
                           {h.ai?.colonyHealth || 90}% Healthy 🟢
