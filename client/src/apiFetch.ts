@@ -282,7 +282,7 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
   // Live Cloud Sync on Vercel: Query Supabase for real-time IoT telemetry from physical hardware
   if (/^\/api\/hives/.test(pathname) || /^\/api\/dashboard/.test(pathname)) {
     try {
-      const supaRes = await fetch(`${SUPABASE_REST_URL}/beehives?select=*&_t=${Date.now()}`, {
+      const supaRes = await fetch(`${SUPABASE_REST_URL}/beehives?select=*`, {
         cache: 'no-store',
         headers: {
           'apikey': SUPABASE_ANON_KEY,
