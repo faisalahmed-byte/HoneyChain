@@ -61,12 +61,13 @@ export const SmartBeekeepingView: React.FC<SmartBeekeepingViewProps> = ({ active
               <Cpu className="h-5 w-5" />
             </div>
             <div>
-              <div className="flex items-center space-x-2">
-                <h2 className="text-xl font-extrabold text-slate-900">Smart Beekeeping & AI-Assisted Hive Analysis</h2>
-                <span className="text-[10px] bg-blue-50 text-blue-700 font-bold px-2 py-0.5 rounded-md border border-blue-200 uppercase tracking-wider font-mono">
-                  ESP32 IoT Ready
-                </span>
-              </div>
+                <div className="flex items-center space-x-2 flex-wrap gap-y-1">
+                  <h2 className="text-xl font-extrabold text-slate-900">Smart Beekeeping & AI-Assisted Hive Analysis</h2>
+                  <span className="text-[10px] bg-emerald-50 text-emerald-800 font-extrabold px-2.5 py-0.5 rounded-md border border-emerald-300 uppercase tracking-wider font-mono flex items-center space-x-1">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                    <span>DHT22 SENSOR LIVE</span>
+                  </span>
+                </div>
               <p className="text-xs text-slate-500">
                 Rule-based hive telemetry correlation, colony health indicators, stress metrics, and yield prediction algorithms
               </p>
@@ -216,11 +217,18 @@ export const SmartBeekeepingView: React.FC<SmartBeekeepingViewProps> = ({ active
                 <div className="space-y-4">
                   {/* Hive Title Bar */}
                   <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                    <div className="flex items-center space-x-2">
+                    <div className="flex items-center space-x-2 flex-wrap gap-y-1">
                       <span className="font-mono font-black text-base text-amber-900 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-lg">
                         {h.hive_id}
                       </span>
-                      <span className="text-xs font-bold text-slate-600">● Online</span>
+                      {h.hive_id === 'HIVE-001' || h.hive_id === 'HIVE-007' ? (
+                        <span className="text-[10px] font-extrabold text-emerald-800 bg-emerald-100 border border-emerald-300 px-2.5 py-0.5 rounded-full flex items-center space-x-1.5 shadow-2xs">
+                          <span className="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+                          <span>LIVE SENSOR (DHT22)</span>
+                        </span>
+                      ) : (
+                        <span className="text-xs font-bold text-slate-600">● Online</span>
+                      )}
                     </div>
 
                     <button

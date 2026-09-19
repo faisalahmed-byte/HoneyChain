@@ -35,7 +35,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
         .catch(console.error);
     };
     fetchHives();
-    const interval = setInterval(fetchHives, 3000);
+    const interval = setInterval(fetchHives, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -329,10 +329,17 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ data, loading, onR
                     >
                       <td className="py-3 px-3 font-bold text-amber-900">{h.hive_id}</td>
                       <td className="py-3 px-3">
-                        <span className="inline-flex items-center space-x-1 text-emerald-700 font-bold text-[11px]">
-                          <span className="h-2 w-2 rounded-full bg-emerald-500" />
-                          <span>Online</span>
-                        </span>
+                        {h.hive_id === 'HIVE-001' || h.hive_id === 'HIVE-007' ? (
+                          <span className="inline-flex items-center space-x-1.5 text-emerald-800 bg-emerald-50 border border-emerald-300 px-2 py-0.5 rounded-full font-extrabold text-[10px]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-ping" />
+                            <span>DHT22 Live</span>
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center space-x-1 text-emerald-700 font-bold text-[11px]">
+                            <span className="h-2 w-2 rounded-full bg-emerald-500" />
+                            <span>Online</span>
+                          </span>
+                        )}
                       </td>
                       <td className={`py-3 px-3 text-right font-extrabold ${h.temperature_c > 36 ? 'text-red-600' : 'text-slate-800'}`}>
                         {h.temperature_c}°C

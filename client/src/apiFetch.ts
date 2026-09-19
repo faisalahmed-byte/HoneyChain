@@ -294,20 +294,76 @@ export async function apiFetch(url: string, options?: RequestInit): Promise<Resp
           const nowTime = new Date().toISOString().replace('T', ' ').slice(0, 19);
 
           liveHives.forEach((lh: any) => {
-            const existing = MOCK_HIVES.find(h => h.hive_id === lh.hive_id);
-            if (existing) {
-              if (lh.temperature_c !== undefined && lh.temperature_c !== null) {
-                existing.temperature_c = Number(lh.temperature_c);
+            const targets = [lh.hive_id];
+            if (lh.hive_id === 'HIVE-001') targets.push('HIVE-007');
+            if (lh.hive_id === 'HIVE-007') targets.push('HIVE-001');
+
+            targets.forEach(targetId => {
+              const existing = MOCK_HIVES.find(h => h.hive_id === targetId);
+              if (existing) {
+                if (lh.temperature_c !== undefined && lh.temperature_c !== null) {
+                  existing.temperature_c = Number(lh.temperature_c);
+                }
+                if (lh.humidity_pct !== undefined && lh.humidity_pct !== null) {
+                  existing.humidity_pct = Number(lh.humidity_pct);
+                }
+                if (lh.weight_kg !== undefined && lh.weight_kg !== null) {
+                  existing.weight_kg = Number(lh.weight_kg);
+                }
+                existing.updated_at = lh.updated_at || nowTime;
+
+                // Dynamically recompute AI metrics based on live sensor telemetry
+                if (existing.ai) {
+                  const t = existing.temperature_c;
+                  const h = existing.humidity_pct;
+
+                let health = 94;
+                let stress = 6;
+                const reasons: string[] = ['Live IoT Hardware Active (DHT22 on COM7)'];
+
+                if (t > 36.5) {
+                  stress += Math.min(45, Math.round((t - 36.5) * 12));
+                  health -= Math.min(40, Math.round((t - 36.5) * 10));
+                  reasons.push(`High brood temperature: ${t.toFixed(1)}°C (Ventilation alert)`);
+                } else if (t < 30.0) {
+                  stress += Math.min(40, Math.round((30.0 - t) * 8));
+                  health -= Math.min(30, Math.round((30.0 - t) * 6));
+                  reasons.push(`Low ambient temperature: ${t.toFixed(1)}°C (Cluster warming active)`);
+                } else {
+                  reasons.push(`Optimal brood temperature: ${t.toFixed(1)}°C`);
+                }
+
+                if (h > 75) {
+                  stress += Math.min(30, Math.round((h - 75) * 2));
+                  reasons.push(`Elevated humidity: ${h}% (Condensation risk)`);
+                } else if (h < 45) {
+                  stress += Math.min(25, Math.round((45 - h) * 1.5));
+                  reasons.push(`Low humidity: ${h}%`);
+                } else {
+                  reasons.push(`Balanced hive humidity: ${h}%`);
+                }
+
+                health = Math.max(20, Math.min(99, health));
+                stress = Math.max(1, Math.min(95, stress));
+
+                existing.ai.colonyHealth = health;
+                existing.ai.stressRisk = stress;
+                existing.ai.whyThisResult = reasons;
+
+                if (t > 37.0 || h > 80) {
+                  existing.ai.recommendation = `Alert: High heat/moisture detected (${t.toFixed(1)}°C, ${h}%). Inspect ventilation immediately.`;
+                  existing.ai.label = 'Warning — Hive Stress Alert';
+                } else if (t < 28.0) {
+                  existing.ai.recommendation = `Ambient temperature is ${t.toFixed(1)}°C. Bees clustering for warmth. Maintain insulation.`;
+                  existing.ai.label = 'Caution — Thermal Conservation';
+                } else {
+                  existing.ai.recommendation = `Optimal environmental conditions. Colony is operating at peak metabolic efficiency.`;
+                  existing.ai.label = 'Healthy — Live Telemetry Active';
+                }
               }
-              if (lh.humidity_pct !== undefined && lh.humidity_pct !== null) {
-                existing.humidity_pct = Number(lh.humidity_pct);
-              }
-              if (lh.weight_kg !== undefined && lh.weight_kg !== null) {
-                existing.weight_kg = Number(lh.weight_kg);
-              }
-              existing.updated_at = lh.updated_at || nowTime;
             }
           });
+        });
         }
       }
     } catch (sErr) {

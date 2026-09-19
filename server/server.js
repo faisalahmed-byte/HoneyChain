@@ -1079,10 +1079,15 @@ app.post('/api/iot/sensor', async (req, res) => {
     if (!hiveId) return res.status(400).json({ error: 'hiveId is required' });
 
     const now = timestamp || new Date().toISOString().replace('T', ' ').slice(0, 19);
-    const temp = parseFloat(temperature) || 33.8;
-    const hum = parseFloat(humidity) || 68.0;
-    const wt = parseFloat(weight) || 19.4;
-    const batt = parseFloat(battery) || 95.0;
+    const parsedTemp = parseFloat(temperature);
+    const parsedHum = parseFloat(humidity);
+    if (isNaN(parsedTemp) || isNaN(parsedHum) || (parsedTemp <= 0 && parsedHum <= 0)) {
+      return res.status(400).json({ error: 'Invalid or zero sensor readings ignored' });
+    }
+    const temp = parsedTemp;
+    const hum = parsedHum;
+    const wt = !isNaN(parseFloat(weight)) ? parseFloat(weight) : 19.4;
+    const batt = !isNaN(parseFloat(battery)) ? parseFloat(battery) : 95.0;
 
     db.prepare(`
       INSERT INTO sensor_readings (hive_id, temperature_c, humidity_pct, weight_kg, battery_pct, timestamp)
@@ -1095,6 +1100,16 @@ app.post('/api/iot/sensor', async (req, res) => {
       WHERE hive_id = ?
     `).run(temp, hum, wt, now, hiveId);
 
+    // Mirror between HIVE-001 (Hardware Node) and HIVE-007 (Primary Deccan Apiary Node)
+    const mirrorHiveId = hiveId === 'HIVE-001' ? 'HIVE-007' : (hiveId === 'HIVE-007' ? 'HIVE-001' : null);
+    if (mirrorHiveId) {
+      db.prepare(`
+        UPDATE hives
+        SET temperature_c = ?, humidity_pct = ?, weight_kg = ?, updated_at = ?
+        WHERE hive_id = ?
+      `).run(temp, hum, wt, now, mirrorHiveId);
+    }
+
     // Sync live telemetry to Supabase beehives table
     if (supabase) {
       try {
@@ -1103,6 +1118,14 @@ app.post('/api/iot/sensor', async (req, res) => {
           humidity_pct: hum,
           weight_kg: wt
         }).eq('hive_id', hiveId);
+
+        if (mirrorHiveId) {
+          await supabase.from('beehives').update({
+            temperature_c: temp,
+            humidity_pct: hum,
+            weight_kg: wt
+          }).eq('hive_id', mirrorHiveId);
+        }
       } catch (sErr) {
         console.warn('Supabase IoT sync warning:', sErr.message);
       }

@@ -1,90 +1,97 @@
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
-#include <Bonezegei_DHT22.h>
+// ============================================================================
+// HONEY CHAIN IoT - Smart Hive Node Firmware (DHT11 + 16x2 Parallel LCD)
+// ============================================================================
 
-// ================= PIN CONFIGURATION =================
-#define DHT_PIN 7
+// OPTION A: Using Bonezegei DHT11 library (default)
+#include <Bonezegei_DHT11.h>
+#include <LiquidCrystal.h>
 
-// I2C LCD
-// Common address: 0x27
-LiquidCrystal_I2C lcd(0x27, 16, 2);
+// DHT11 Data Pin connected to Arduino Digital Pin 7
+Bonezegei_DHT11 dht(7);
 
-Bonezegei_DHT22 dht(DHT_PIN);
+// 16x2 Parallel LCD Pinout: RS=Pin 12, EN=Pin 11, D4=Pin 5, D5=Pin 4, D6=Pin 3, D7=Pin 2
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
 
-// ================= SETUP =================
+/*
+// ----------------------------------------------------------------------------
+// OPTION B: If using standard Adafruit "DHT sensor library", uncomment this block
+// and comment out Option A above:
+// ----------------------------------------------------------------------------
+#include <DHT.h>
+#include <LiquidCrystal.h>
+#define DHTPIN 7
+#define DHTTYPE DHT11
+DHT dht(DHTPIN, DHTTYPE);
+LiquidCrystal lcd(12, 11, 5, 4, 3, 2);
+// ----------------------------------------------------------------------------
+*/
+
 void setup() {
-
-  Serial.begin(9600);
-
-  // Start DHT22
+  Serial.begin(9600); // 9600 Baud communication with Honey Chain bridge
+  lcd.begin(16, 2);
   dht.begin();
 
-  // Start I2C LCD
-  lcd.init();
-  lcd.backlight();
-
-  // Startup screen
+  // Startup splash screen
   lcd.setCursor(0, 0);
-  lcd.print("HONEY CHAIN");
+  lcd.print("HONEY CHAIN IoT");
   lcd.setCursor(0, 1);
-  lcd.print("Smart Hive Node");
-
-  Serial.println("================================");
-  Serial.println("HONEY CHAIN - SMART HIVE NODE");
-  Serial.println("DHT22 Sensor Initializing...");
-  Serial.println("================================");
-
+  lcd.print("Smart Hive Node ");
+  
+  Serial.println("================================================");
+  Serial.println("HONEY CHAIN - Smart Hive Node Initializing...");
+  Serial.println("DHT11 Sensor on Pin 7 | LCD (12, 11, 5, 4, 3, 2)");
+  Serial.println("================================================");
   delay(2000);
-
   lcd.clear();
 }
 
-// ================= MAIN LOOP =================
 void loop() {
-
+  // Option A (Bonezegei):
   if (dht.getData()) {
+    float temp = dht.getTemperature(); // Celsius
+    int hum = dht.getHumidity();       // Relative Humidity %
 
-    float temperature = dht.getTemperature();
-    int humidity = dht.getHumidity();
+    /*
+    // Option B (Adafruit DHT):
+    float temp = dht.readTemperature();
+    int hum = (int)dht.readHumidity();
+    if (!isnan(temp) && !isnan(hum)) {
+    */
 
-    // ================= LCD DISPLAY =================
+    // Calibration offset (Adjust only if your DHT11 requires fine-tuning):
+    float finalTemp = temp; // e.g. temp + 0.0
+    int finalHum = hum;     // e.g. hum + 0
 
+    // 1. Display on your physical 16x2 LCD
+    lcd.clear();
     lcd.setCursor(0, 0);
     lcd.print("Temp: ");
-    lcd.print(temperature, 1);
-    lcd.print((char)223);
-    lcd.print("C   ");
+    lcd.print(finalTemp, 1);
+    lcd.print((char)223); // degree symbol (°)
+    lcd.print("C");
 
     lcd.setCursor(0, 1);
-    lcd.print("Hum : ");
-    lcd.print(humidity);
-    lcd.print("%   ");
+    lcd.print("Hum:  ");
+    lcd.print(finalHum);
+    lcd.print(" %");
 
-    // ================= SERIAL MONITOR =================
-
+    // 2. Output to USB Serial for Honey Chain Python Bridge (arduino_bridge.py)
+    // Synchronizes with both local SQLite backend and Supabase Cloud / Vercel
     Serial.print("Temperature: ");
-    Serial.print(temperature, 1);
-    Serial.print(" C | Humidity: ");
-    Serial.print(humidity);
+    Serial.print(finalTemp, 1);
+    Serial.print(" C   Humidity: ");
+    Serial.print(finalHum);
     Serial.println(" %");
 
-  }
-
-  else {
-
-    // ================= SENSOR ERROR =================
-
+  } else {
+    // Sensor reading failed
     lcd.clear();
-
     lcd.setCursor(0, 0);
-    lcd.print("Sensor Error!");
-
+    lcd.print("Sensor Error!   ");
     lcd.setCursor(0, 1);
-    lcd.print("Check DHT22");
-
-    Serial.println("ERROR: Failed to read DHT22 sensor.");
+    lcd.print("Check DHT11 pin ");
+    Serial.println("Sensor Error! Failed to read from DHT11.");
   }
 
-  // DHT22 reading interval
-  delay(2000);
+  delay(2000); // DHT11 sampling rate: read every 2 seconds
 }
