@@ -1,63 +1,90 @@
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
 #include <Bonezegei_DHT22.h>
-#include <LiquidCrystal.h>
 
-// Pin Configuration (matching your hardware wiring)
-Bonezegei_DHT22 dht(7);                // DHT22 data pin = Pin 7
-LiquidCrystal lcd(12, 11, 5, 4, 3, 2); // RS, EN, D4, D5, D6, D7
+// ================= PIN CONFIGURATION =================
+#define DHT_PIN 7
 
+// I2C LCD
+// Common address: 0x27
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+Bonezegei_DHT22 dht(DHT_PIN);
+
+// ================= SETUP =================
 void setup() {
-  Serial.begin(9600); // 9600 Baud communication with Honey Chain
-  lcd.begin(16, 2);
+
+  Serial.begin(9600);
+
+  // Start DHT22
   dht.begin();
 
-  // Startup splash screen
+  // Start I2C LCD
+  lcd.init();
+  lcd.backlight();
+
+  // Startup screen
   lcd.setCursor(0, 0);
-  lcd.print("HONEY CHAIN IoT");
+  lcd.print("HONEY CHAIN");
   lcd.setCursor(0, 1);
   lcd.print("Smart Hive Node");
-  
-  Serial.println("HONEY CHAIN - Smart Hive Node Initializing...");
+
+  Serial.println("================================");
+  Serial.println("HONEY CHAIN - SMART HIVE NODE");
+  Serial.println("DHT22 Sensor Initializing...");
+  Serial.println("================================");
+
   delay(2000);
+
   lcd.clear();
 }
 
+// ================= MAIN LOOP =================
 void loop() {
+
   if (dht.getData()) {
-    float temp = dht.getTemperature(); // Celsius from DHT22
-    int hum = dht.getHumidity();       // Humidity % from DHT22
 
-    // Apply your calibration offsets:
-    float finalTemp = temp + 23.0; // Your tested temperature
-    int finalHum = hum + 50;        // Your tested humidity
+    float temperature = dht.getTemperature();
+    int humidity = dht.getHumidity();
 
-    // 1. Display on your physical 16x2 LCD
-    lcd.clear();
+    // ================= LCD DISPLAY =================
+
     lcd.setCursor(0, 0);
     lcd.print("Temp: ");
-    lcd.print(finalTemp, 1);
-    lcd.print((char)223); // degree symbol
-    lcd.print("C");
+    lcd.print(temperature, 1);
+    lcd.print((char)223);
+    lcd.print("C   ");
 
     lcd.setCursor(0, 1);
-    lcd.print("Hum:  ");
-    lcd.print(finalHum);
-    lcd.print(" %");
+    lcd.print("Hum : ");
+    lcd.print(humidity);
+    lcd.print("%   ");
 
-    // 2. Output to USB Serial for Honey Chain Website & Supabase
+    // ================= SERIAL MONITOR =================
+
     Serial.print("Temperature: ");
-    Serial.print(finalTemp, 1);
-    Serial.print(" C   Humidity: ");
-    Serial.print(finalHum);
+    Serial.print(temperature, 1);
+    Serial.print(" C | Humidity: ");
+    Serial.print(humidity);
     Serial.println(" %");
 
-  } else {
-    // Sensor reading failed
-    lcd.setCursor(0, 0);
-    lcd.print("Sensor Error!   ");
-    lcd.setCursor(0, 1);
-    lcd.print("Check DHT22 pin ");
-    Serial.println("Sensor Error! Failed to read from DHT22.");
   }
 
-  delay(2000); // Wait 2 seconds before next reading
+  else {
+
+    // ================= SENSOR ERROR =================
+
+    lcd.clear();
+
+    lcd.setCursor(0, 0);
+    lcd.print("Sensor Error!");
+
+    lcd.setCursor(0, 1);
+    lcd.print("Check DHT22");
+
+    Serial.println("ERROR: Failed to read DHT22 sensor.");
+  }
+
+  // DHT22 reading interval
+  delay(2000);
 }
